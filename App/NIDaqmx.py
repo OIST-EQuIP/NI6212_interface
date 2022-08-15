@@ -7,7 +7,7 @@ class NIDaqmx:
     def getInputData(self,port):
         with nidaqmx.Task() as task:
             task.ai_channels.add_ai_voltage_chan(self.dev + "/" + port)
-            return task.read(number_of_samples_per_channel=20)
+            return task.read(number_of_samples_per_channel=1)
         # print(self.port)
         
     def setOutputData(self,port,data):

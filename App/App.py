@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from TableWidget import TableWidget
 import pglive.examples_pyqt5 as examples
+import signal
 
 class App(QMainWindow):
     def __init__(self):
