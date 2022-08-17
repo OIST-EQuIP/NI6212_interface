@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import QApplication,QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QHBoxLayout
+from PyQt5.QtWidgets import QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QHBoxLayout
 from PyQt5 import QtCore,QtGui
-import sys
 import pglive.examples_pyqt5 as examples
 import signal
 from threading import Thread
@@ -14,16 +13,14 @@ from pglive.sources.data_connector import DataConnector
 from pglive.sources.live_plot import LiveLinePlot
 from pglive.sources.live_plot_widget import LivePlotWidget
 
-import numpy as np
 from NIDaqmx import NIDaqmx
 
 class TableWidget(QWidget):
     def __init__(self,parent):
         super(QWidget,self).__init__(parent)
-        self.plot_running1 = False
-        self.plot_running2 = False
-        self.close = False
         dev_name = "Dev2"
+        self.AI_plot_running = False
+        self.AO_plot_running = False
         self.ni = NIDaqmx(dev_name)
         self.layout = QVBoxLayout(self)
         # Initialize tab screen
@@ -35,122 +32,123 @@ class TableWidget(QWidget):
         # Add tabs
         self.tabs.addTab(self.tab1,'AI')
         self.tabs.addTab(self.tab2,'AO')
-        
-        self.create_tab1()
-        self.create_tab2()
+        self.createTab1()
+        self.createTab2()
         
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
         
-        Thread(target=self.plot_generator1, args=(self.data_connector1,)).start()
+        Thread(target=self.plot_generator1, args=(self.AI_data_connector,)).start()
         Thread(target=self.plot_generator2, args=(self.data_connector2,)).start()   
         signal.signal(signal.SIGINT, lambda sig, frame: examples.stop())
     
     
-    def create_tab1(self):
-        # Create first tab
+    def createTab1(self):
         self.tab1.layout = QVBoxLayout()
-        ## Combo
-        self.combo1 = QComboBox(self)
-        self.combo1.addItem('ai0')
-        self.combo1.addItem('ai1')
-        self.combo1.addItem('ai2')
-        self.combo1.addItem('ai3')
-        self.combo1.addItem('ai4')
-        self.combo1.addItem('ai5')
-        self.combo1.addItem('ai6')
-        self.combo1.addItem('ai7')
-        ## Button
-        self.button1 = QPushButton('EXECUTE')
-        self.button1.setCheckable(True)
-        self.button1.toggled.connect(self.slot_button1_toggled)
-        ## Graph
+        # Combo
+        items = ['ai0','ai1','ai2','ai3','ai4','ai5','ai6','ai7']
+        self.AI_combo = self.createCombo(items)
+        # Button
+        self.AI_button = self.createButton('EXECUTE',True)
+        self.AI_button.toggled.connect(self.slotAIButtonToggled)
+        # Graph
+        ## Create plot widget
         kwargs = {Crosshair.ENABLED: True,Crosshair.LINE_PEN: pg.mkPen(color="red", width=1),Crosshair.TEXT_KWARGS: {"color": "green"}}
-        ### Create plot widget
-        plot_widget1 = LivePlotWidget(title="Line Plot and Crosshair @ 100Hz", **kwargs)
-        plot1 = LiveLinePlot()
-        plot_widget1.addItem(plot1)
-        ### Connect plot with DataConnector
-        self.data_connector1 = DataConnector(plot1, max_points=200)
-        self.data_connector1.pause()
+        plot_widget = LivePlotWidget(title="Line Plot and Crosshair @ 100Hz", **kwargs)
+        plot = LiveLinePlot()
+        plot_widget.addItem(plot)
+        ## Connect plot with DataConnector
+        self.AI_data_connector = DataConnector(plot, max_points=200)
+        self.AI_data_connector.pause()
         ### Create crosshair X, Y label
         self.ch_status_value = QLabel("Crosshair: Outside plot")
         self.ch_x_value = QLabel("X: Unavailable")
         self.ch_y_value = QLabel("Y: Unavailable")
-        ### Connect moved and out signals with respective functions
-        plot_widget1.sig_crosshair_moved.connect(self.crosshair_moved)
-        plot_widget1.sig_crosshair_out.connect(self.crosshair_out)
-        plot_widget1.sig_crosshair_in.connect(self.crosshair_in)
-        ## Box
-        ### HBox
-        self.hbox1 = QHBoxLayout()
-        self.hbox1.addStretch(1)
-        self.hbox1.addWidget(self.ch_status_value)
-        self.hbox1.addWidget(self.ch_x_value)
-        self.hbox1.addWidget(self.ch_y_value)
-        self.hbox1.addWidget(self.combo1)
-        self.hbox1.addWidget(self.button1)
-        ### VBox
-        self.vbox1 = QVBoxLayout()
-        self.vbox1.addStretch(1)
-        self.vbox1.addWidget(plot_widget1)
-        self.vbox1.addLayout(self.hbox1)
+        ## Connect moved and out signals with respective functions
+        plot_widget.sig_crosshair_moved.connect(self.crosshair_moved)
+        plot_widget.sig_crosshair_out.connect(self.crosshair_out)
+        plot_widget.sig_crosshair_in.connect(self.crosshair_in)
+        # Box layout
+        ## HBox
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addWidget(self.ch_status_value)
+        hbox.addWidget(self.ch_x_value)
+        hbox.addWidget(self.ch_y_value)
+        hbox.addWidget(self.AI_combo)
+        hbox.addWidget(self.AI_button)
+        ## VBox
+        vbox = QVBoxLayout()
+        vbox.addStretch(1)
+        vbox.addWidget(plot_widget)
+        vbox.addLayout(hbox)
         
-        self.tab1.setLayout(self.vbox1)
+        self.tab1.setLayout(vbox)
     
     
-    def create_tab2(self):
+    def createTab2(self):
         # Criate Second tab
         self.tab2.layout = QVBoxLayout()
         ## TextBox
-        self.textbox2 = QLineEdit(self)
+        self.textbox = QLineEdit(self)
         lim = QtCore.QRegExp("[0-9-.]+")
-        self.textbox2.setValidator(QtGui.QRegExpValidator(lim))
+        self.textbox.setValidator(QtGui.QRegExpValidator(lim))
         ## Label
-        self.label2 = QLabel("V",self)
+        label = QLabel("V",self)
         ## Combo
-        self.combo2 = QComboBox(self)
-        self.combo2.addItem("ao0")
-        self.combo2.addItem("ao1")
+        items = ['ao0','ao1']
+        self.AO_combo = self.createCombo(items)
         ## Button
-        self.button2 = QPushButton('EXECUTE')
-        self.button2.setCheckable(True)
-        self.button2.toggled.connect(self.slot_button2_toggled)
-        ## graph
+        self.AO_button = self.createButton('EXECUTE',True)
+        self.AO_button.toggled.connect(self.slotAOButtonToggled)
         ## Graph
-        kwargs = {Crosshair.ENABLED: True,Crosshair.LINE_PEN: pg.mkPen(color="red", width=1),Crosshair.TEXT_KWARGS: {"color": "green"}}
         ### Create plot widget
-        plot_widget2 = LivePlotWidget(title="Line Plot and Crosshair @ 100Hz", **kwargs)
-        plot2 = LiveLinePlot()
-        plot_widget2.addItem(plot2)
+        kwargs = {Crosshair.ENABLED: True,Crosshair.LINE_PEN: pg.mkPen(color="red", width=1),Crosshair.TEXT_KWARGS: {"color": "green"}}
+        plot_widget = LivePlotWidget(title="Line Plot and Crosshair @ 100Hz", **kwargs)
+        plot = LiveLinePlot()
+        plot_widget.addItem(plot)
         ### Connect plot with DataConnector
-        self.data_connector2 = DataConnector(plot2, max_points=200)
+        self.data_connector2 = DataConnector(plot, max_points=200)
         self.data_connector2.pause()
         ### Create crosshair X, Y label
         self.ch_status_value = QLabel("Crosshair: Outside plot")
         self.ch_x_value = QLabel("X: Unavailable")
         self.ch_y_value = QLabel("Y: Unavailable")
         ### Connect moved and out signals with respective functions
-        plot_widget2.sig_crosshair_moved.connect(self.crosshair_moved)
-        plot_widget2.sig_crosshair_out.connect(self.crosshair_out)
-        plot_widget2.sig_crosshair_in.connect(self.crosshair_in)
+        plot_widget.sig_crosshair_moved.connect(self.crosshair_moved)
+        plot_widget.sig_crosshair_out.connect(self.crosshair_out)
+        plot_widget.sig_crosshair_in.connect(self.crosshair_in)
         ## Box
         ### HBox
-        self.hbox2 = QHBoxLayout()
-        self.hbox2.addStretch(1)
-        self.hbox2.addWidget(self.ch_status_value)
-        self.hbox2.addWidget(self.ch_x_value)
-        self.hbox2.addWidget(self.ch_y_value)
-        self.hbox2.addWidget(self.textbox2)
-        self.hbox2.addWidget(self.label2)
-        self.hbox2.addWidget(self.combo2)
-        self.hbox2.addWidget(self.button2)
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addWidget(self.ch_status_value)
+        hbox.addWidget(self.ch_x_value)
+        hbox.addWidget(self.ch_y_value)
+        hbox.addWidget(self.textbox)
+        hbox.addWidget(label)
+        hbox.addWidget(self.AO_combo)
+        hbox.addWidget(self.AO_button)
         ### VBox
-        self.vbox2 = QVBoxLayout()
-        self.vbox2.addStretch(1)
-        self.vbox2.addWidget(plot_widget2)
-        self.vbox2.addLayout(self.hbox2)
-        self.tab2.setLayout(self.vbox2)
+        vbox = QVBoxLayout()
+        vbox.addStretch(1)
+        vbox.addWidget(plot_widget)
+        vbox.addLayout(hbox)
+        self.tab2.setLayout(vbox)
+        
+    
+    def createCombo(self,items: list) -> QComboBox:
+        combo = QComboBox(self)
+        for item in items:
+            combo.addItem(item)
+            
+        return combo
+    
+    
+    def createButton(self,label: str,toggled: bool) -> QPushButton:
+        button = QPushButton(label)
+        button.setCheckable(toggled)
+        return button
     
     
     def crosshair_moved(self,crosshair_pos: QtCore.QPointF):
@@ -171,45 +169,44 @@ class TableWidget(QWidget):
         self.ch_status_value.setText("Crosshair: Inside plot")
         
         
-    def slot_button1_toggled(self,checked):
+    def slotAIButtonToggled(self,checked):
         if checked:
-            self.data_connector1.resume()
-            self.plot_running1 = True
-            self.button1.setText('STOP')
+            self.AI_data_connector.resume()
+            self.AI_plot_running = True
+            self.AI_button.setText('STOP')
         else:
-            self.data_connector1.pause()
-            self.plot_running1 = False
-            self.button1.setText('EXECUTE')
+            self.AI_data_connector.pause()
+            self.AI_plot_running = False
+            self.AI_button.setText('EXECUTE')
             
     
-    def slot_button2_toggled(self,checked):
+    def slotAOButtonToggled(self,checked):
         if checked:
             self.data_connector2.resume()
-            self.plot_running2 = True
-            self.button2.setText('STOP')
+            self.AO_plot_running = True
+            self.AO_button.setText('STOP')
         else:
             self.data_connector2.pause()
-            self.plot_running2 = False
-            self.ni.setOutputData(self.combo2.currentText(),0.0)
-            sleep(0.02)
-            self.button2.setText('EXECUTE')
+            self.AO_plot_running = False
+            self.AO_button.setText('EXECUTE')
         
             
     def plot_generator1(self,*data_connectors):
         x = 0
-        while self.is_end():
-            if self.plot_running1 != False: x += 1
-            value = self.ni.getInputData(self.combo1.currentText())
+        while True:
+            if self.AI_plot_running != False: x += 1
+            value = self.ni.getInputData(self.AI_combo.currentText())
             for data_connector in data_connectors:
                 data_connector.cb_append_data_point(value[0],x)
                 
             sleep(0.02)
+        
             
     def plot_generator2(self,*data_connectors):
         y = 0
-        while self.is_end():
-            if self.plot_running2 != False: y += 1
-            value = self.textbox2.text()
+        while True:
+            if self.AO_plot_running != False: y += 1
+            value = self.textbox.text()
             if value == "" or value == "-" or value == ".":
                 value = 0.0
             elif float(value) >= 10.0:
@@ -220,13 +217,8 @@ class TableWidget(QWidget):
                 value = float(value)
                 
             for data_connector in data_connectors:
-                self.ni.setOutputData(self.combo2.currentText(),value)
+                self.ni.setOutputData(self.AO_combo.currentText(),value)
                 data_connector.cb_append_data_point(value,y)
                 
             sleep(0.02)
     
-    def is_end(self):
-        return True
-    
-    def closeEvent(self):
-        print('Hello')
