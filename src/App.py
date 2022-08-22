@@ -6,7 +6,7 @@ from TableWidget import TableWidget
 class App(QMainWindow):
     def __init__(self):
         super().__init__()
-        title = "NI6212 Interface _Prototype"
+        title = "NI6212 Interface"
         width = 855
         height = 500
         self.setWindowTitle(title)

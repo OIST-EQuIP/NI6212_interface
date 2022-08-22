@@ -17,10 +17,11 @@ Analog input/output of voltage and digital output can be performed.
 ## Usage
 To run this application, run src/App.py.
 
-'''
+```
 $ cd src
+
 $ python App.py
-'''
+```
 
 ## Description
 
