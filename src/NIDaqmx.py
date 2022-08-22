@@ -28,10 +28,11 @@ class NIDaqmx:
             pass
         
         
-    def setDOData(self,port: str,lineCh: str,data: str) -> None:
+    def setDOData(self,port: str,lineCh: list,data: list) -> None:
         try:
             with nidaqmx.Task() as task:
-                task.do_channels.add_do_chan(self.dev + "/" + port + "/" + lineCh, line_grouping=LineGrouping.CHAN_PER_LINE)
-                task.write([data])
+                for i in lineCh:
+                    task.do_channels.add_do_chan(self.dev + "/" + port + "/" + i, line_grouping=LineGrouping.CHAN_PER_LINE)
+                task.write(data)
         except nidaqmx.errors.DaqError:
             pass

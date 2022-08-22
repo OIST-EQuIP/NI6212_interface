@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QHBoxLayout
+from PyQt5.QtWidgets import QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QCheckBox, QHBoxLayout
 from PyQt5 import QtCore,QtGui
 from threading import Thread
 
@@ -23,6 +23,7 @@ class TableWidget(QWidget):
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
+        self.tab4 = QWidget()
         self.tabs.resize(300,200)
         
         # Add tabs
@@ -156,8 +157,24 @@ class TableWidget(QWidget):
         items = ['Port 0','Port 1','Port 2']
         self.DO_port_combo = self.createCombo(items)
         self.DO_port_combo.setCurrentIndex(1)
-        items = ['PFI 0','PFI 1','PFI 2','PFI 3','PFI 4','PFI 5','PFI 6','PFI 7',]
-        self.DO_channel_combo = self.createCombo(items)
+        # Checkbox
+        self.checkboxs = list()
+        self.labels = list()
+        vboxs = list()
+        for i in range(8):
+            self.checkboxs.append(QCheckBox())
+            self.labels.append(QLabel(str(i)))
+            self.labels[i].setAlignment(QtCore.Qt.AlignCenter)
+            vboxs.append(QVBoxLayout())
+            vboxs[i].addWidget(self.checkboxs[i])
+            vboxs[i].addWidget(self.labels[i])
+            
+        checkbox_hbox = QHBoxLayout()
+        for i in vboxs:
+            checkbox_hbox.addLayout(i)    
+            
+        # items = ['PFI 0','PFI 1','PFI 2','PFI 3','PFI 4','PFI 5','PFI 6','PFI 7',]
+        # self.DO_channel_combo = self.createCombo(items)
         # Button
         self.DO_state_button = self.createButton('ON',True)
         self.DO_state_button.toggled.connect(self.slotDOStateButtonToggled)
@@ -181,7 +198,7 @@ class TableWidget(QWidget):
         hbox = QHBoxLayout()
         hbox.addStretch(1)
         hbox.addWidget(self.DO_port_combo)
-        hbox.addWidget(self.DO_channel_combo)
+        hbox.addLayout(checkbox_hbox)
         hbox.addWidget(self.DO_state_button)
         hbox.addWidget(self.DO_button)
         ## VBox
@@ -324,8 +341,17 @@ class TableWidget(QWidget):
             for data_connector in data_connectors:
                 if self.DO_plot_running == True: 
                     port = 'port' + self.DO_port_combo.currentText()[-1]
-                    channel = 'line' + self.DO_channel_combo.currentText()[-1]
-                    self.ni.setDOData(port,channel,self.DO_state)
+                    select = list()
+                    status = list()
+                    channels = list()
+                    for i in range(len(self.checkboxs)):
+                        if self.checkboxs[i].checkState() == QtCore.Qt.Checked:
+                            select.append(i)
+                            status.append(self.DO_state)
+
+                    for i in select:
+                        channels.append(f'line{i}')
+                    self.ni.setDOData(port,channels,status)
                     data_connector.cb_append_data_point(self.DO_state,x)
                     x += 1
                 
