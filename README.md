@@ -1,8 +1,9 @@
 # NI6212_interface
 
-![image](https://github.com/OIST-EQuIP/NI6212_interface/img/Capture.PNG)
+![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/Capture.PNG)
 
 This is a GUI application developed for NATIONAL INSTRUMENTS' NI USB-6212 BNC BUS-POWERED M SE.
+
 Analog input/output of voltage and digital output can be performed.
 
 ## Requirement
@@ -25,17 +26,17 @@ $ python App.py
 
 There are three tabs on the application: "Analog Input," "Analog Output," and "Digital Output.
 
-![image](https://github.com/OIST-EQuIP/NI6212_interface/img/AI.PNG)
+![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/AI.PNG)
 
 "Analog Input" measures the voltage on the channel selected in the drop-down list.
 To start measurement, press the "START" button. To exit, press the button labeled "STOP".
 
-![image](https://github.com/OIST-EQuIP/NI6212_interface/img/AO.PNG)
+![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/AO.PNG)
 
 "Analog Output" outputs the specified voltage to the channel selected in the drop-down list.
 Specifiable Output values are from -10 to 10.
 
-![image](https://github.com/OIST-EQuIP/NI6212_interface/img/DO.PNG)
+![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/DO.PNG)
 
 Under "Digital Output," the voltage flows to the channel selected in the drop-down list.
 Press the "START" button to start measurement, and press the "ON" button to output the signal. Press the "OFF" button to stop outputting the signal.
@@ -45,4 +46,5 @@ If the device name is different from the default value, please change it here.
 
 ## Reference
 [PyQt5 document](https://pythonspot.com/pyqt5/)
+
 [NI-DAQmx Python API](https://nidaqmx-python.readthedocs.io/en/latest/)
