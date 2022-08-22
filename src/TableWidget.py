@@ -1,22 +1,20 @@
 from PyQt5.QtWidgets import QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QHBoxLayout
 from PyQt5 import QtCore,QtGui
-import pglive.examples_pyqt5 as examples
-import signal
 from threading import Thread
 
 import pyqtgraph as pg
-
-from time import sleep
 
 from pglive.kwargs import Crosshair
 from pglive.sources.data_connector import DataConnector
 from pglive.sources.live_plot import LiveLinePlot
 from pglive.sources.live_plot_widget import LivePlotWidget
 
+from time import sleep
+
 from NIDaqmx import NIDaqmx
 
 class TableWidget(QWidget):
-    def __init__(self,parent):
+    def __init__(self,parent) -> None:
         super(QWidget,self).__init__(parent)
         self.ni = NIDaqmx()
         self.layout = QVBoxLayout(self)
@@ -67,7 +65,7 @@ class TableWidget(QWidget):
         Thread(target=self.plot_generator3, args=(self.data_connector3,)).start()
     
     
-    def createTab1(self):
+    def createTab1(self) -> None:
         self.tab1.layout = QVBoxLayout()
         self.AI_plot_running = False
         # Combo
@@ -104,7 +102,7 @@ class TableWidget(QWidget):
         self.tab1.setLayout(vbox)
     
     
-    def createTab2(self):
+    def createTab2(self) -> None:
         self.tab2.layout = QVBoxLayout()
         self.AO_plot_running = False
         ## TextBox
@@ -150,7 +148,7 @@ class TableWidget(QWidget):
         self.tab2.setLayout(vbox)
     
     
-    def createTab3(self):
+    def createTab3(self) -> None:
         self.tab3.layout= QVBoxLayout()
         self.DO_plot_running = False
         self.DO_state = False
@@ -194,7 +192,6 @@ class TableWidget(QWidget):
         
         self.tab3.setLayout(vbox)
         
-        
     
     def createCombo(self,items: list) -> QComboBox:
         combo = QComboBox(self)
@@ -210,25 +207,25 @@ class TableWidget(QWidget):
         return button
     
     
-    def crosshair_moved(self,crosshair_pos: QtCore.QPointF):
+    def crosshair_moved(self,crosshair_pos: QtCore.QPointF) -> None:
         """Update crosshair X, Y label when crosshair move"""
         self.ch_x_value.setText(f"X: {crosshair_pos.x()}")
         self.ch_y_value.setText(f"Y: {crosshair_pos.y()}")
 
 
-    def crosshair_out(self):
+    def crosshair_out(self) -> None:
         """Update crosshair X, Y label when crosshair leaves plot area"""
         self.ch_status_value.setText("Crosshair: Outside plot")
         self.ch_x_value.setText(f"X: Unavailable")
         self.ch_y_value.setText(f"Y: Unavailable")
 
 
-    def crosshair_in(self):
+    def crosshair_in(self) -> None:
         """Update crosshair X, Y label when crosshair enters plot area"""
         self.ch_status_value.setText("Crosshair: Inside plot")
     
     
-    def slotEditButtonToggled(self,checked):
+    def slotEditButtonToggled(self,checked: bool) -> None:
         if checked:
             self.editButton.setText("Set")
             self.dev_name.setEnabled(True)
@@ -237,7 +234,8 @@ class TableWidget(QWidget):
             self.ni.setDevName(self.dev_name.text())
             self.dev_name.setEnabled(False)
         
-    def slotAIButtonToggled(self,checked):
+        
+    def slotAIButtonToggled(self,checked: bool) -> None:
         if checked:
             self.AI_data_connector.resume()
             self.AI_plot_running = True
@@ -248,7 +246,7 @@ class TableWidget(QWidget):
             self.AI_button.setText('EXECUTE')
             
     
-    def slotAOButtonToggled(self,checked):
+    def slotAOButtonToggled(self,checked: bool) -> None:
         if checked:
             self.data_connector2.resume()
             self.AO_plot_running = True
@@ -259,7 +257,7 @@ class TableWidget(QWidget):
             self.AO_button.setText('EXECUTE')
     
             
-    def slotDOStateButtonToggled(self,checked):
+    def slotDOStateButtonToggled(self,checked: bool) -> None:
         if checked:
             self.DO_state = True
             self.DO_state_button.setText('OFF')
@@ -268,7 +266,7 @@ class TableWidget(QWidget):
             self.DO_state_button.setText('ON')
             
     
-    def slotDOButtonToggled(self,checked):
+    def slotDOButtonToggled(self,checked: bool) -> None:
         if checked:
             self.data_connector3.resume()
             self.DO_plot_running = True
@@ -279,7 +277,7 @@ class TableWidget(QWidget):
             self.DO_button.setText('EXECUTE')
         
             
-    def plot_generator1(self,*data_connectors):
+    def plot_generator1(self,*data_connectors: tuple) -> None:
         x = 0
         while True:
             for data_connector in data_connectors:
@@ -292,7 +290,7 @@ class TableWidget(QWidget):
             sleep(0.02)
         
             
-    def plot_generator2(self,*data_connectors):
+    def plot_generator2(self,*data_connectors: tuple) -> None:
         x = 0
         while True:
             value = self.textbox.text()
@@ -320,7 +318,7 @@ class TableWidget(QWidget):
             sleep(0.02)
             
             
-    def plot_generator3(self,*data_connectors):
+    def plot_generator3(self,*data_connectors: tuple) -> None:
         x = 0
         while True: 
             for data_connector in data_connectors:

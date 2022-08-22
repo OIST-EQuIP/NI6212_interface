@@ -6,11 +6,11 @@ class NIDaqmx:
         self.dev = None
 
 
-    def setDevName(self,dev_name):
+    def setDevName(self,dev_name: str) -> None:
         self.dev = dev_name
     
     
-    def getAIData(self,port):
+    def getAIData(self,port: str) -> list:
         try:
             with nidaqmx.Task() as task:
                 task.ai_channels.add_ai_voltage_chan(self.dev + "/" + port)
@@ -19,7 +19,7 @@ class NIDaqmx:
             return [0]
 
         
-    def setAOData(self,port,data):
+    def setAOData(self,port: str,data: float) -> None:
         try:
             with nidaqmx.Task() as task:
                 task.ao_channels.add_ao_voltage_chan(self.dev + "/" + port)
@@ -28,7 +28,7 @@ class NIDaqmx:
             pass
         
         
-    def setDOData(self,port,lineCh,data):
+    def setDOData(self,port: str,lineCh: str,data: str) -> None:
         try:
             with nidaqmx.Task() as task:
                 task.do_channels.add_do_chan(self.dev + "/" + port + "/" + lineCh, line_grouping=LineGrouping.CHAN_PER_LINE)
