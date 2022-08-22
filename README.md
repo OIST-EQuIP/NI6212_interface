@@ -3,8 +3,8 @@
 ![Python](https://img.shields.io/badge/python-v3.9.12-007396.svg?logo=python&style=popout)
 ![PyQt5](https://img.shields.io/badge/PyQt5-v5.15.7-007396.svg?logo=python&style=popout)
 ![pyqtgraph](https://img.shields.io/badge/pyqtgraph-v0.12.4-007396.svg?logo=python&style=popout)
-![pglive](https://img.shields.io/badge/PyQt5-v0.3.3-007396.svg?logo=python&style=popout)
-![pglive](https://img.shields.io/badge/nidaqmx-v0.6.3-44A833.svg?style=popout)
+![pglive](https://img.shields.io/badge/pglive-v0.3.3-007396.svg?logo=python&style=popout)
+![nidaqmx](https://img.shields.io/badge/nidaqmx-v0.6.3-44A833.svg?style=popout)
 
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/Capture.PNG)
 
