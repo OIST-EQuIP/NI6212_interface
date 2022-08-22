@@ -25,7 +25,7 @@ $ python App.py
 
 ## Description
 
-There are three tabs on the application: "Analog Input," "Analog Output," and "Digital Output.
+There are three tabs on the application: "Analog Input," "Analog Output," and "Digital Output".
 
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/AI.PNG)
 
@@ -39,8 +39,8 @@ Specifiable Output values are from -10 to 10.
 
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/DO.PNG)
 
-Under "Digital Output," the voltage flows to the channel selected in the drop-down list.
-Press the "START" button to start measurement, and press the "ON" button to output the signal. Press the "OFF" button to stop outputting the signal.
+In "Digital Output", voltage flows to the channel selected by the check box.
+Press the "START" button to start measurement, and press the "ON" button to output the signal. Pressing the "OFF" button stops signal output.
 
 The device name can be edited by pressing the "Edit" button.
 If the device name is different from the default value, please change it here.
