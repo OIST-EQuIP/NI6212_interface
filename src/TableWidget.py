@@ -18,8 +18,7 @@ from NIDaqmx import NIDaqmx
 class TableWidget(QWidget):
     def __init__(self,parent):
         super(QWidget,self).__init__(parent)
-        dev_name = "Dev2"
-        self.ni = NIDaqmx(dev_name)
+        self.ni = NIDaqmx()
         self.layout = QVBoxLayout(self)
         # Initialize tab screen
         self.tabs = QTabWidget()
@@ -36,10 +35,25 @@ class TableWidget(QWidget):
         self.createTab2()
         self.createTab3()
         
+        label = QLabel("Device Name")
+        label.setFixedWidth(80)
+        self.dev_name = QLineEdit(self)
+        self.dev_name.setFixedWidth(150)
+        self.dev_name.setText("Dev1")
+        self.dev_name.setEnabled(False)
+        self.ni.setDevName(self.dev_name.text())
+        
+        self.editButton = self.createButton('Edit',True)
+        self.editButton.setFixedWidth(100)
+        self.editButton.toggled.connect(self.slotEditButtonToggled)
+        
         self.ch_status_value = QLabel("Crosshair: Outside plot")
         self.ch_x_value = QLabel("X: Unavailable")
         self.ch_y_value = QLabel("Y: Unavailable")
         self.hbox = QHBoxLayout()
+        self.hbox.addWidget(label)
+        self.hbox.addWidget(self.dev_name)
+        self.hbox.addWidget(self.editButton)
         self.hbox.addWidget(self.ch_status_value)
         self.hbox.addWidget(self.ch_x_value)
         self.hbox.addWidget(self.ch_y_value)
@@ -143,6 +157,7 @@ class TableWidget(QWidget):
         # Combo
         items = ['Port 0','Port 1','Port 2']
         self.DO_port_combo = self.createCombo(items)
+        self.DO_port_combo.setCurrentIndex(1)
         items = ['PFI 0','PFI 1','PFI 2','PFI 3','PFI 4','PFI 5','PFI 6','PFI 7',]
         self.DO_channel_combo = self.createCombo(items)
         # Button
@@ -211,7 +226,16 @@ class TableWidget(QWidget):
     def crosshair_in(self):
         """Update crosshair X, Y label when crosshair enters plot area"""
         self.ch_status_value.setText("Crosshair: Inside plot")
-        
+    
+    
+    def slotEditButtonToggled(self,checked):
+        if checked:
+            self.editButton.setText("Set")
+            self.dev_name.setEnabled(True)
+        else:
+            self.editButton.setText("Edit")
+            self.ni.setDevName(self.dev_name.text())
+            self.dev_name.setEnabled(False)
         
     def slotAIButtonToggled(self,checked):
         if checked:
@@ -276,10 +300,10 @@ class TableWidget(QWidget):
             if value == "" or value == "-" or value == ".":
                 self.message.setText('')
                 value = 0.0
-            elif float(value) >= 10.0:
+            elif float(value) > 10.0:
                 self.message.setText('WARNING! : Set the value between -10 and 10')
                 value = 10.0
-            elif float(value) <= -10.0:
+            elif float(value) < -10.0:
                 self.message.setText('WARNING! : Set the value between -10 and 10')
                 value = -10.0
             else:
