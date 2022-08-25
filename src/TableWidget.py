@@ -30,9 +30,12 @@ class TableWidget(QWidget):
         self.tabs.addTab(self.tab1,'AI')
         self.tabs.addTab(self.tab2,'AO')
         self.tabs.addTab(self.tab3,'DO')
+        self.tabs.addTab(self.tab4,'Scan Amplitude')
         self.createTab1()
         self.createTab2()
         self.createTab3()
+        self.createTab4()
+        
         
         label = QLabel("Device Name")
         label.setFixedWidth(80)
@@ -62,10 +65,12 @@ class TableWidget(QWidget):
         self.layout.addLayout(self.hbox)
         
         Thread(target=self.plot_generator1, args=(self.AI_data_connector,)).start()
-        Thread(target=self.plot_generator2, args=(self.data_connector2,)).start()
-        Thread(target=self.plot_generator3, args=(self.data_connector3,)).start()
+        Thread(target=self.plot_generator2, args=(self.AO_data_connector,)).start()
+        Thread(target=self.plot_generator3, args=(self.DO_data_connector,)).start()
+        Thread(target=self.plot_generator4, args=(self.SA_data_connector,)).start()
     
     
+    # Create AI tab
     def createTab1(self) -> None:
         self.tab1.layout = QVBoxLayout()
         self.AI_plot_running = False
@@ -103,6 +108,7 @@ class TableWidget(QWidget):
         self.tab1.setLayout(vbox)
     
     
+    # Create AO tab
     def createTab2(self) -> None:
         self.tab2.layout = QVBoxLayout()
         self.AO_plot_running = False
@@ -126,8 +132,8 @@ class TableWidget(QWidget):
         plot = LiveLinePlot()
         plot_widget.addItem(plot)
         ### Connect plot with DataConnector
-        self.data_connector2 = DataConnector(plot, max_points=200)
-        self.data_connector2.pause()
+        self.AO_data_connector = DataConnector(plot, max_points=200)
+        self.AO_data_connector.pause()
         ### Connect moved and out signals with respective functions
         plot_widget.sig_crosshair_moved.connect(self.crosshair_moved)
         plot_widget.sig_crosshair_out.connect(self.crosshair_out)
@@ -149,6 +155,7 @@ class TableWidget(QWidget):
         self.tab2.setLayout(vbox)
     
     
+    # Create DO tab
     def createTab3(self) -> None:
         self.tab3.layout= QVBoxLayout()
         self.DO_plot_running = False
@@ -172,9 +179,7 @@ class TableWidget(QWidget):
         checkbox_hbox = QHBoxLayout()
         for i in vboxs:
             checkbox_hbox.addLayout(i)    
-            
-        # items = ['PFI 0','PFI 1','PFI 2','PFI 3','PFI 4','PFI 5','PFI 6','PFI 7',]
-        # self.DO_channel_combo = self.createCombo(items)
+
         # Button
         self.DO_state_button = self.createButton('ON',True)
         self.DO_state_button.toggled.connect(self.slotDOStateButtonToggled)
@@ -187,8 +192,8 @@ class TableWidget(QWidget):
         plot = LiveLinePlot()
         plot_widget.addItem(plot)
         ### Connect plot with DataConnector
-        self.data_connector3 = DataConnector(plot, max_points=200)
-        self.data_connector3.pause()
+        self.DO_data_connector = DataConnector(plot, max_points=200)
+        self.DO_data_connector.pause()
         ### Connect moved and out signals with respective functions
         plot_widget.sig_crosshair_moved.connect(self.crosshair_moved)
         plot_widget.sig_crosshair_out.connect(self.crosshair_out)
@@ -208,7 +213,104 @@ class TableWidget(QWidget):
         vbox.addLayout(hbox)
         
         self.tab3.setLayout(vbox)
+    
+    
+    # Create Scan Amplitude tab
+    def createTab4(self) -> None:
+        self.tab4.layout= QVBoxLayout()
+        self.SA_plot_running = False
+        self.SA_state = False
+        # Label
+        threshold_label = QLabel('Threshold')
+        vmax_label = QLabel('vmax')
+        vmin_label = QLabel('vmin')
+        step_label = QLabel('step size')
+        AO_label = QLabel('AO Channel')
+        AI_label = QLabel('AI Channel')
+        # TextBox
+        lim = QtCore.QRegExp("[0-9-.]+")
+        self.threshold = QLineEdit(self)
+        self.threshold.setFixedWidth(120)
+        self.threshold.setValidator(QtGui.QRegExpValidator(lim))
+        self.vmax = QLineEdit(self)
+        self.vmax.setFixedWidth(120)
+        self.vmax.setValidator(QtGui.QRegExpValidator(lim))
+        self.vmax.setText("10.0")
+        self.vmax.setEnabled(False)
+        self.vmin = QLineEdit(self)
+        self.vmin.setFixedWidth(120)
+        self.vmin.setValidator(QtGui.QRegExpValidator(lim))
+        self.vmin.setText("-10.0")
+        self.vmin.setEnabled(False)
+        self.step = QLineEdit(self)
+        self.step.setFixedWidth(120)
+        self.step.setValidator(QtGui.QRegExpValidator(lim))
+        # Button
+        self.lode_button = self.createButton('lode',True)
+        self.lode_button.toggled.connect(self.slotSALodeButtonToggled)
+        self.scan_button = self.createButton('scan',True)
+        # Combo
+        items = ['AO 0','AO 1']
+        self.AO_channel_combo = self.createCombo(items)
+        items = ['AI 0','AI 1','AI 2','AI 3','AI 4','AI 5','AI 6','AI 7']
+        self.AI_channel_combo = self.createCombo(items)
+        # Graph
+        ### Create plot widget
+        kwargs = {Crosshair.ENABLED: True,Crosshair.LINE_PEN: pg.mkPen(color="red", width=1),Crosshair.TEXT_KWARGS: {"color": "green"}}
+        plot_widget = LivePlotWidget(title="", **kwargs)
+        plot = LiveLinePlot()
+        plot_widget.addItem(plot)
+        ### Connect plot with DataConnector
+        self.SA_data_connector = DataConnector(plot, max_points=200)
+        self.SA_data_connector.pause()
+        ### Connect moved and out signals with respective functions
+        plot_widget.sig_crosshair_moved.connect(self.crosshair_moved)
+        plot_widget.sig_crosshair_out.connect(self.crosshair_out)
+        plot_widget.sig_crosshair_in.connect(self.crosshair_in)
+        # Box layout
+        hbox1 = QHBoxLayout()
+        hbox1.addWidget(threshold_label)
+        hbox1.addWidget(self.threshold)
+        hbox1.addWidget(QLabel('V'))
+        hbox2 = QHBoxLayout()
+        hbox2.addWidget(vmax_label)
+        hbox2.addWidget(self.vmax)
+        hbox2.addWidget(QLabel('V'))
+        hbox3 = QHBoxLayout()
+        hbox3.addWidget(vmin_label)
+        hbox3.addWidget(self.vmin)
+        hbox3.addWidget(QLabel('V'))
+        hbox4 = QHBoxLayout()
+        hbox4.addWidget(step_label)
+        hbox4.addWidget(self.step)
+        hbox4.addWidget(QLabel('V'))
+        hbox5 = QHBoxLayout()
+        hbox5.addWidget(AO_label)
+        hbox5.addWidget(self.AO_channel_combo)
+        hbox5.addWidget(AI_label)
+        hbox5.addWidget(self.AI_channel_combo)
+        hbox6 = QHBoxLayout()
+        hbox6.addWidget(self.lode_button)
+        hbox6.addWidget(self.scan_button)
         
+        ## Main VBox
+        vbox_main = QVBoxLayout()
+        vbox_main.addStretch(1)
+        vbox_main.addLayout(hbox1)
+        vbox_main.addLayout(hbox2)
+        vbox_main.addLayout(hbox3)
+        vbox_main.addLayout(hbox4)
+        vbox_main.addLayout(hbox5)
+        vbox_main.addLayout(hbox6)
+        
+        ## Main HBox
+        hbox_main = QHBoxLayout()
+        hbox_main.addStretch(1)
+        hbox_main.addWidget(plot_widget)
+        hbox_main.addLayout(vbox_main)
+        
+        self.tab4.setLayout(hbox_main)
+    
     
     def createCombo(self,items: list) -> QComboBox:
         combo = QComboBox(self)
@@ -265,11 +367,11 @@ class TableWidget(QWidget):
     
     def slotAOButtonToggled(self,checked: bool) -> None:
         if checked:
-            self.data_connector2.resume()
+            self.AO_data_connector.resume()
             self.AO_plot_running = True
             self.AO_button.setText('STOP')
         else:
-            self.data_connector2.pause()
+            self.AO_data_connector.pause()
             self.AO_plot_running = False
             self.AO_button.setText('EXECUTE')
     
@@ -285,14 +387,37 @@ class TableWidget(QWidget):
     
     def slotDOButtonToggled(self,checked: bool) -> None:
         if checked:
-            self.data_connector3.resume()
+            self.DO_data_connector.resume()
             self.DO_plot_running = True
             self.DO_button.setText('STOP')
         else:
-            self.data_connector3.pause()
+            self.DO_data_connector.pause()
             self.DO_plot_running = False
             self.DO_button.setText('EXECUTE')
+            
+    
+    def lodeButtonClickCallback(self) -> None:
+        self.data_connector4.resume()
+        self.SA_plot_running = True
         
+    
+    def slotSALodeButtonToggled(self,checked: bool) -> None:
+        if checked:
+            self.SA_data_connector.resume()
+            self.SA_plot_running = True
+            self.lode_button.setText('STOP')
+        else:
+            self.SA_data_connector.pause()
+            self.SA_plot_running = False
+            self.lode_button.setText('lode')
+        
+        
+    def slotSAScanButtonToggled(self,checked: bool) -> None:
+        if checked:
+            pass
+        else:
+            pass
+    
             
     def plot_generator1(self,*data_connectors: tuple) -> None:
         x = 0
@@ -316,10 +441,10 @@ class TableWidget(QWidget):
                 self.message.setText('')
                 value = 0.0
             elif float(value) > 10.0:
-                self.message.setText('WARNING! : Set the value between -10 and 10')
+                self.message.setText('WARNING! : Set the value between -10.0 and 10.0')
                 value = 10.0
             elif float(value) < -10.0:
-                self.message.setText('WARNING! : Set the value between -10 and 10')
+                self.message.setText('WARNING! : Set the value between -10.0 and 10.0')
                 value = -10.0
             else:
                 self.message.setText('')
@@ -328,6 +453,7 @@ class TableWidget(QWidget):
             for data_connector in data_connectors:
                 if self.AO_plot_running == True: 
                     channel = 'ao' + self.AO_channel_combo.currentText()[-1]
+                    print(channel)
                     self.ni.setAOData(channel,value)
                     data_connector.cb_append_data_point(value,x)
                     x += 1
@@ -357,3 +483,36 @@ class TableWidget(QWidget):
                 
             sleep(0.02)
     
+    
+    def plot_generator4(self,*data_connectors: tuple) -> None:
+        x = 0
+        AO_value = 0
+        state = True
+        while True:
+            for data_connector in data_connectors:
+                if self.SA_plot_running == True:
+                    AI_channel = 'ai' + self.AI_channel_combo.currentText()[-1]
+                    AI_value = self.ni.getAIData(AI_channel)
+                    AO_channel = 'ao' + self.AO_channel_combo.currentText()[-1]
+                    threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
+                    vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
+                    vmin = float(self.vmin.text()) if self.vmin.text() != '' and self.vmin.text() != '-' else 0.0
+                    step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
+                    AO_value,state = self.scanAmplitude(threshold,vmax,vmin,step,AO_value,state)
+                    self.ni.setAOData(AO_channel,AO_value)
+                    print(AO_value)
+                    data_connector.cb_append_data_point(AI_value[0],x)
+                    x += 1
+                
+            sleep(0.02)
+            
+            
+    def scanAmplitude(self,threshold: float,vmax: float,vmin: float,step: float,now_value: float,now_state: bool) -> float:        
+        if now_state:
+            result = now_value + step
+            state = now_state if result < vmax else not(now_state)
+        else:
+            result = now_value - step 
+            state = now_state if result > vmin else not(now_state)
+        print(state)
+        return result,state
