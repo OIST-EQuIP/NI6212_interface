@@ -64,10 +64,10 @@ class TableWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.layout.addLayout(self.hbox)
         
-        Thread(target=self.plot_generator1, args=(self.AI_data_connector,)).start()
-        Thread(target=self.plot_generator2, args=(self.AO_data_connector,)).start()
-        Thread(target=self.plot_generator3, args=(self.DO_data_connector,)).start()
-        Thread(target=self.plot_generator4, args=(self.SA_data_connector,)).start()
+        Thread(target=self.plotGenerator1, args=(self.AI_data_connector,)).start()
+        Thread(target=self.plotGenerator2, args=(self.AO_data_connector,)).start()
+        Thread(target=self.plotGenerator3, args=(self.DO_data_connector,)).start()
+        Thread(target=self.plotGenerator4, args=(self.SA_data_connector,)).start()
     
     
     # Create AI tab
@@ -219,8 +219,9 @@ class TableWidget(QWidget):
     def createTab4(self) -> None:
         self.tab4.layout= QVBoxLayout()
         self.SA_plot_running = False
-        self.SA_state = False
+        self.SA_scan_state = False
         # Label
+        self.system_message = QLabel('')
         threshold_label = QLabel('Threshold')
         vmax_label = QLabel('vmax')
         vmin_label = QLabel('vmin')
@@ -235,20 +236,21 @@ class TableWidget(QWidget):
         self.vmax = QLineEdit(self)
         self.vmax.setFixedWidth(120)
         self.vmax.setValidator(QtGui.QRegExpValidator(lim))
-        self.vmax.setText("10.0")
+        self.vmax.setText("5.4")
         self.vmax.setEnabled(False)
         self.vmin = QLineEdit(self)
         self.vmin.setFixedWidth(120)
         self.vmin.setValidator(QtGui.QRegExpValidator(lim))
-        self.vmin.setText("-10.0")
+        self.vmin.setText("-5.4")
         self.vmin.setEnabled(False)
         self.step = QLineEdit(self)
         self.step.setFixedWidth(120)
         self.step.setValidator(QtGui.QRegExpValidator(lim))
         # Button
-        self.lode_button = self.createButton('lode',True)
-        self.lode_button.toggled.connect(self.slotSALodeButtonToggled)
-        self.scan_button = self.createButton('scan',True)
+        self.load_button = self.createButton('LOAD',True)
+        self.load_button.toggled.connect(self.slotSALoadButtonToggled)
+        self.scan_button = self.createButton('SCAN',True)
+        self.scan_button.toggled.connect(self.slotSAScanButtonToggled)
         # Combo
         items = ['AO 0','AO 1']
         self.AO_channel_combo = self.createCombo(items)
@@ -290,12 +292,13 @@ class TableWidget(QWidget):
         hbox5.addWidget(AI_label)
         hbox5.addWidget(self.AI_channel_combo)
         hbox6 = QHBoxLayout()
-        hbox6.addWidget(self.lode_button)
+        hbox6.addWidget(self.load_button)
         hbox6.addWidget(self.scan_button)
         
         ## Main VBox
         vbox_main = QVBoxLayout()
         vbox_main.addStretch(1)
+        vbox_main.addWidget(self.system_message)
         vbox_main.addLayout(hbox1)
         vbox_main.addLayout(hbox2)
         vbox_main.addLayout(hbox3)
@@ -394,32 +397,31 @@ class TableWidget(QWidget):
             self.DO_data_connector.pause()
             self.DO_plot_running = False
             self.DO_button.setText('EXECUTE')
-            
-    
-    def lodeButtonClickCallback(self) -> None:
-        self.data_connector4.resume()
-        self.SA_plot_running = True
         
     
-    def slotSALodeButtonToggled(self,checked: bool) -> None:
+    def slotSALoadButtonToggled(self,checked: bool) -> None:
         if checked:
             self.SA_data_connector.resume()
             self.SA_plot_running = True
-            self.lode_button.setText('STOP')
+            self.scan_button.setEnabled(True)
+            self.load_button.setText('STOP')
         else:
             self.SA_data_connector.pause()
             self.SA_plot_running = False
-            self.lode_button.setText('lode')
+            self.scan_button.setEnabled(False)
+            self.load_button.setText('LOAD')
         
         
     def slotSAScanButtonToggled(self,checked: bool) -> None:
         if checked:
-            pass
+            self.SA_scan_state = True
+            self.scan_button.setText('STOP')
         else:
-            pass
+            self.SA_scan_state = False
+            self.scan_button.setText('SCAN')
     
             
-    def plot_generator1(self,*data_connectors: tuple) -> None:
+    def plotGenerator1(self,*data_connectors: tuple) -> None:
         x = 0
         while True:
             for data_connector in data_connectors:
@@ -432,7 +434,7 @@ class TableWidget(QWidget):
             sleep(0.02)
         
             
-    def plot_generator2(self,*data_connectors: tuple) -> None:
+    def plotGenerator2(self,*data_connectors: tuple) -> None:
         x = 0
         while True:
             value = self.textbox.text()
@@ -453,7 +455,6 @@ class TableWidget(QWidget):
             for data_connector in data_connectors:
                 if self.AO_plot_running == True: 
                     channel = 'ao' + self.AO_channel_combo.currentText()[-1]
-                    print(channel)
                     self.ni.setAOData(channel,value)
                     data_connector.cb_append_data_point(value,x)
                     x += 1
@@ -461,7 +462,7 @@ class TableWidget(QWidget):
             sleep(0.02)
             
             
-    def plot_generator3(self,*data_connectors: tuple) -> None:
+    def plotGenerator3(self,*data_connectors: tuple) -> None:
         x = 0
         while True: 
             for data_connector in data_connectors:
@@ -484,35 +485,43 @@ class TableWidget(QWidget):
             sleep(0.02)
     
     
-    def plot_generator4(self,*data_connectors: tuple) -> None:
+    def plotGenerator4(self,*data_connectors: tuple) -> None:
         x = 0
         AO_value = 0
         state = True
         while True:
             for data_connector in data_connectors:
                 if self.SA_plot_running == True:
-                    AI_channel = 'ai' + self.AI_channel_combo.currentText()[-1]
-                    AI_value = self.ni.getAIData(AI_channel)
-                    AO_channel = 'ao' + self.AO_channel_combo.currentText()[-1]
                     threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
                     vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
                     vmin = float(self.vmin.text()) if self.vmin.text() != '' and self.vmin.text() != '-' else 0.0
                     step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
-                    AO_value,state = self.scanAmplitude(threshold,vmax,vmin,step,AO_value,state)
+                    AI_channel = 'ai' + self.AI_channel_combo.currentText()[-1]
+                    # AI_value = round(self.ni.getAIData(AI_channel)[0],int(str(threshold).split('.')[1])+1)
+                    AI_value = self.ni.getAIData(AI_channel)[0]
+                    AO_channel = 'ao' + self.AO_channel_combo.currentText()[-1]
+                    AO_value,state = self.AOUpdateRate(vmax,vmin,step,AO_value,state)
                     self.ni.setAOData(AO_channel,AO_value)
-                    print(AO_value)
-                    data_connector.cb_append_data_point(AI_value[0],x)
+                    # print(f'{threshold},{AI_value}')
+                    # if self.SA_scan_state:
+                    #     if threshold == AI_value:
+                    #         self.system_message.setText(f'{x},{AI_value}')
+                    #         print(1)
+                    data_connector.cb_append_data_point(AI_value,x)
                     x += 1
                 
             sleep(0.02)
             
             
-    def scanAmplitude(self,threshold: float,vmax: float,vmin: float,step: float,now_value: float,now_state: bool) -> float:        
+    def AOUpdateRate(self,vmax: float,vmin: float,step: float,now_value: float,now_state: bool) -> float:        
         if now_state:
             result = now_value + step
             state = now_state if result < vmax else not(now_state)
         else:
             result = now_value - step 
             state = now_state if result > vmin else not(now_state)
-        print(state)
         return result,state
+    
+    
+    def ScanAmplitude(self) -> None:
+        pass
