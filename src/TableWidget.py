@@ -11,6 +11,8 @@ from pglive.sources.live_plot_widget import LivePlotWidget
 
 from time import sleep
 
+import numpy as np
+
 from NIDaqmx import NIDaqmx
 
 class TableWidget(QWidget):
@@ -225,6 +227,7 @@ class TableWidget(QWidget):
         threshold_label = QLabel('Threshold')
         vmax_label = QLabel('vmax')
         vmin_label = QLabel('vmin')
+        vamp_label = QLabel('vamp')
         step_label = QLabel('step size')
         AO_label = QLabel('AO Channel')
         AI_label = QLabel('AI Channel')
@@ -243,6 +246,11 @@ class TableWidget(QWidget):
         self.vmin.setValidator(QtGui.QRegExpValidator(lim))
         self.vmin.setText("-5.4")
         self.vmin.setEnabled(False)
+        self.vamp = QLineEdit(self)
+        self.vamp.setFixedWidth(120)
+        self.vamp.setValidator(QtGui.QRegExpValidator(lim))
+        self.vamp.setText("")
+        self.vamp.setEnabled(True)
         self.step = QLineEdit(self)
         self.step.setFixedWidth(120)
         self.step.setValidator(QtGui.QRegExpValidator(lim))
@@ -283,17 +291,21 @@ class TableWidget(QWidget):
         hbox3.addWidget(self.vmin)
         hbox3.addWidget(QLabel('V'))
         hbox4 = QHBoxLayout()
-        hbox4.addWidget(step_label)
-        hbox4.addWidget(self.step)
+        hbox4.addWidget(vamp_label)
+        hbox4.addWidget(self.vamp)
         hbox4.addWidget(QLabel('V'))
         hbox5 = QHBoxLayout()
-        hbox5.addWidget(AO_label)
-        hbox5.addWidget(self.AO_channel_combo)
-        hbox5.addWidget(AI_label)
-        hbox5.addWidget(self.AI_channel_combo)
+        hbox5.addWidget(step_label)
+        hbox5.addWidget(self.step)
+        hbox5.addWidget(QLabel('V'))
         hbox6 = QHBoxLayout()
-        hbox6.addWidget(self.load_button)
-        hbox6.addWidget(self.scan_button)
+        hbox6.addWidget(AO_label)
+        hbox6.addWidget(self.AO_channel_combo)
+        hbox6.addWidget(AI_label)
+        hbox6.addWidget(self.AI_channel_combo)
+        hbox7 = QHBoxLayout()
+        hbox7.addWidget(self.load_button)
+        hbox7.addWidget(self.scan_button)
         
         ## Main VBox
         vbox_main = QVBoxLayout()
@@ -305,6 +317,7 @@ class TableWidget(QWidget):
         vbox_main.addLayout(hbox4)
         vbox_main.addLayout(hbox5)
         vbox_main.addLayout(hbox6)
+        vbox_main.addLayout(hbox7)
         
         ## Main HBox
         hbox_main = QHBoxLayout()
@@ -495,12 +508,13 @@ class TableWidget(QWidget):
                     threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
                     vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
                     vmin = float(self.vmin.text()) if self.vmin.text() != '' and self.vmin.text() != '-' else 0.0
+                    vamp = float(self.vamp.text()) if self.vamp.text() != '' and self.vamp.text() != '-' else 0.0
                     step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
                     AI_channel = 'ai' + self.AI_channel_combo.currentText()[-1]
                     # AI_value = round(self.ni.getAIData(AI_channel)[0],int(str(threshold).split('.')[1])+1)
                     AI_value = self.ni.getAIData(AI_channel)[0]
                     AO_channel = 'ao' + self.AO_channel_combo.currentText()[-1]
-                    AO_value,state = self.AOUpdateRate(vmax,vmin,step,AO_value,state)
+                    AO_value,state = self.AOUpdateRate(vmax,vmin,vamp,step,AO_value,state)
                     self.ni.setAOData(AO_channel,AO_value)
                     # print(f'{threshold},{AI_value}')
                     # if self.SA_scan_state:
@@ -513,13 +527,13 @@ class TableWidget(QWidget):
             sleep(0.02)
             
             
-    def AOUpdateRate(self,vmax: float,vmin: float,step: float,now_value: float,now_state: bool) -> float:        
+    def AOUpdateRate(self,vmax: float,vmin: float,vamp: float,step: float,now_value: float,now_state: bool) -> float:        
         if now_state:
             result = now_value + step
-            state = now_state if result < vmax else not(now_state)
+            state = now_state if result < vmax and np.abs(result) < vamp else not(now_state)
         else:
             result = now_value - step 
-            state = now_state if result > vmin else not(now_state)
+            state = now_state if result > vmin and np.abs(result) < vamp else not(now_state)
         return result,state
     
     
