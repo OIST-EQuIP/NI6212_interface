@@ -4,7 +4,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 from TableWidget import TableWidget
 
 class App(QMainWindow):
+    """App class."""
     def __init__(self):
+        """Constructor"""
         super().__init__()
         title = "NI6212 Interface"
         width = 855
