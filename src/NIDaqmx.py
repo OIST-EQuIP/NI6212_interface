@@ -2,11 +2,23 @@ import nidaqmx
 from nidaqmx.constants import (LineGrouping)
 
 class NIDaqmx:
+    """Class to control NIDAQ devices."""
     def __init__(self):
+        """Constructor.
+        """
         self.dev = None
 
 
     def setDevName(self,dev_name: str) -> None:
+        """Specify NIDAQ device name.
+
+        Set to use the NIDAQ device specified in the 'dev_name' argument.
+
+        Parameters
+        ----------
+        dev_name : str
+            Device name to be specified
+        """
         self.dev = dev_name
     
     
