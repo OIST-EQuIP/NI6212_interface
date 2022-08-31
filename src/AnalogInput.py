@@ -1,8 +1,8 @@
 from TabCategory import TabCategory
 
 class AnalogInput(TabCategory):
-    def __init__(self,name: str,state,x,y) -> None:
-        super().__init__(name,state,x,y)
+    def __init__(self,name: str,ni,state,x,y) -> None:
+        super().__init__(name,ni,state,x,y)
         # Combo
         items = ['AI 0','AI 1','AI 2','AI 3','AI 4','AI 5','AI 6','AI 7']
         self.channel_combo = super().createCombo(items)

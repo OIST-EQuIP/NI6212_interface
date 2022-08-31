@@ -1,8 +1,8 @@
 from TabCategory import TabCategory
 
 class DigitalOutput(TabCategory):
-    def __init__(self, name: str,state,x,y) -> None:
-        super().__init__(name,state,x,y)
+    def __init__(self, name: str,ni,state,x,y) -> None:
+        super().__init__(name,ni,state,x,y)
         self.DO_state = False
         # Combo
         items = ['Port 0','Port 1','Port 2']

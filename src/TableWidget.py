@@ -18,10 +18,10 @@ class TableWidget(QWidget):
         self.ch_x_value = QLabel("X: Unavailable")
         self.ch_y_value = QLabel("Y: Unavailable")
         
-        self.analogInput = AnalogInput('Analog Input',self.ch_status_value,self.ch_x_value,self.ch_y_value)
-        self.analogOutput = AnalogOutput('Analog Output',self.ch_status_value,self.ch_x_value,self.ch_y_value)
-        self.digitalOutput = DigitalOutput('Digital Output',self.ch_status_value,self.ch_x_value,self.ch_y_value)
-        self.scanAmplitude = ScanAmplitude('Scan Amplitude',self.ch_status_value,self.ch_x_value,self.ch_y_value)
+        self.analogInput = AnalogInput('Analog Input',self.ni,self.ch_status_value,self.ch_x_value,self.ch_y_value)
+        self.analogOutput = AnalogOutput('Analog Output',self.ni,self.ch_status_value,self.ch_x_value,self.ch_y_value)
+        self.digitalOutput = DigitalOutput('Digital Output',self.ni,self.ch_status_value,self.ch_x_value,self.ch_y_value)
+        self.scanAmplitude = ScanAmplitude('Scan Amplitude',self.ni,self.ch_status_value,self.ch_x_value,self.ch_y_value)
         
         # Initialize tab screen
         self.tabs = QTabWidget()

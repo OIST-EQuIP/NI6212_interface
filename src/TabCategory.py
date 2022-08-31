@@ -16,7 +16,7 @@ from time import sleep
 from NIDaqmx import NIDaqmx
 
 class TabCategory:
-    def __init__(self,name,state,x,y):
+    def __init__(self,name,ni,state,x,y):
         self.tab = QVBoxLayout()
         self.hbox_main = QHBoxLayout()
         self.hbox_main.addStretch(1)
@@ -31,12 +31,13 @@ class TabCategory:
         self.crosshair_out_message = []
         self.crosshair_in_message = []
         
+        self.ni = ni
         self.ch_status_value = state
         self.ch_x_value = x
         self.ch_y_value = y
         
-        self.ni = NIDaqmx()
-        self.ni.setDevName('Dev1')
+        # self.ni = NIDaqmx()
+        # self.ni.setDevName('Dev1')
         
         kwargs = {Crosshair.ENABLED: True,Crosshair.LINE_PEN: pg.mkPen(color="red", width=1),Crosshair.TEXT_KWARGS: {"color": "green"}}
         self.plot_widget = LivePlotWidget(title=name, **kwargs)

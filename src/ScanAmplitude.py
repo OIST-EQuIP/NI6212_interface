@@ -3,8 +3,8 @@ from TabCategory import TabCategory
 from PyQt5.QtWidgets import QHBoxLayout
 
 class ScanAmplitude(TabCategory):
-    def __init__(self, name,state,x,y):
-        super().__init__(name,state,x,y)
+    def __init__(self, name,ni,state,x,y):
+        super().__init__(name,ni,state,x,y)
         self.detection = False
         self.x = 0
         self.AO_value = 0

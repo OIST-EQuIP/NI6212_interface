@@ -22,6 +22,10 @@ class NIDaqmx:
         self.dev = dev_name
     
     
+    def getDevName(self) -> str:
+        return self.dev
+    
+    
     def getAIData(self,port: str) -> list:
         try:
             with nidaqmx.Task() as task:
