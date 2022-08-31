@@ -100,7 +100,7 @@ class ScanAmplitude(TabCategory):
     
     def slotScanButtonToggled(self,checked: bool) -> None:
         if checked:
-            
+            self.ni.setAOData('ao' + self.AO_channel_combo.currentText()[-1],0)
             self.data_connector.resume()
             self.plot_running = True
             self.threshold.setEnabled(False)
@@ -113,8 +113,9 @@ class ScanAmplitude(TabCategory):
             self.DO_channel_combo.setEnabled(False)
             self.lock_button.setEnabled(True)
             self.scan_button.setText('STOP')
+            self.sleep(0.02)
         else:
-            self.plotInit()
+            # self.plotInit()
             self.data_connector.pause()
             self.plot_running = False
             self.threshold.setEnabled(True)
@@ -143,7 +144,6 @@ class ScanAmplitude(TabCategory):
             
     
     def plotGenerator(self,*data_connectors: tuple) -> None:
-        
         while True:
             for data_connector in data_connectors:
                 if self.plot_running == True:
@@ -158,13 +158,13 @@ class ScanAmplitude(TabCategory):
                     DO_port = 'port' + self.DO_port_combo.currentText()[-1]
                     DO_channel = 'line' + self.DO_channel_combo.currentText()[-1]
                     
-                    self.AO_value,self.state = self.AOUpdateRate(vmax,vmin,vamp,step,self.AO_value,self.state)
-                    self.ni.setAOData(AO_channel,self.AO_value)
+                    AI_value = self.ni.getAIData(AI_channel)[0]
+                    AO_value,self.state = self.AOUpdateRate(vmax,vmin,vamp,step,AI_value,self.state)
                     
-                    self.AI_value = self.ni.getAIData(AI_channel)[0]
-                    data_connector.cb_append_data_point(self.AI_value,self.x)
+                    self.ni.setAOData(AO_channel,AO_value)
+                    data_connector.cb_append_data_point(AI_value,self.x)
                     
-                    self.ScanAmplitude(threshold,self.AI_value,DO_port,DO_channel,dt)
+                    self.ScanAmplitude(threshold,AI_value,DO_port,DO_channel,dt)
                     
                     self.x += 1
                 
@@ -172,10 +172,7 @@ class ScanAmplitude(TabCategory):
         
         
     def AOUpdateRate(self,vmax: float,vmin: float,vamp: float,step: float,now_value: float,now_state: bool) -> float:        
-        if self.detection:
-            result = now_value
-            state = False
-        elif now_state:
+        if now_state:
             result = now_value + step
             state = now_state if result < vmax and self.np.abs(result) < vamp else not(now_state)
         else:
@@ -192,12 +189,5 @@ class ScanAmplitude(TabCategory):
             self.detection = True
             self.sleep(dt/1000)
             self.ni.setDOData(port,[channel],[True])
-            
-    
-    def plotInit(self):
-        super().plotInit()
-        self.x = 0
-        self.AO_value = 0
-        self.state = True
         
         
