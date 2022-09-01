@@ -1,12 +1,36 @@
+from PyQt5.QtWidgets import QLabel
+
 from TabCategory import TabCategory
+from NIDaqmx import NIDaqmx
 
 class AnalogOutput(TabCategory):
-    def __init__(self, name: str,ni,state,x,y) -> None:
+    """AnalogOutput Class.
+
+        Parameters
+        ----------
+        TabCategory : 
+        
+    """
+    def __init__(self, name: str, ni: NIDaqmx, state: QLabel, x: QLabel, y: QLabel) -> None:
+        """Constructor.
+
+        Parameters
+        ----------
+        name : str
+            
+        ni : NIDaqmx
+        
+        state : QLabel
+        
+        x : QLabel
+        
+        y : QLabel
+        
+        """
         super().__init__(name,ni,state,x,y)
         ## TextBox
         self.textbox = self.createTextBox("[0-9-.]+")
         ## Label
-        # label = self.createLabel("V")
         self.message = self.createLabel('')
         ## Combo
         items = ['AO 0','AO 1']
@@ -28,7 +52,14 @@ class AnalogOutput(TabCategory):
         self.tab.addLayout(self.vbox_main)
         
         
-    def slotButtonToggled(self,checked: bool) -> None:
+    def slotButtonToggled(self, checked: bool) -> None:
+        """slotButtonToggled.
+
+        Parameters
+        ----------
+        checked : bool
+        
+        """
         if checked:
             self.data_connector.resume()
             self.plot_running = True
@@ -39,7 +70,14 @@ class AnalogOutput(TabCategory):
             self.button.setText('EXECUTE')
     
     
-    def plotGenerator(self,*data_connectors: tuple,) -> None:
+    def plotGenerator(self, *data_connectors: tuple) -> None:
+        """plotGenerator.
+
+        Parameters
+        ----------
+        data_connectors : tuple
+        
+        """
         x = 0
         while True:
             value = self.textbox.text()

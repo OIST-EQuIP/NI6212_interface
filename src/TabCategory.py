@@ -15,8 +15,28 @@ from time import sleep
 
 from NIDaqmx import NIDaqmx
 
+from typing import Tuple
+
 class TabCategory:
-    def __init__(self,name,ni,state,x,y):
+    """TabCategory Class. 
+        
+    """
+    def __init__(self, name: str, ni: NIDaqmx, state: QLabel, x: QLabel, y: QLabel):
+        """Constructor.
+
+        Parameters
+        ----------
+        name : str
+            
+        ni : NIDaqmx
+        
+        state : QLabel
+        
+        x : QLabel
+        
+        y : QLabel
+        
+        """
         self.tab = QVBoxLayout()
         self.hbox_main = QHBoxLayout()
         self.hbox_main.addStretch(1)
@@ -36,9 +56,6 @@ class TabCategory:
         self.ch_x_value = x
         self.ch_y_value = y
         
-        # self.ni = NIDaqmx()
-        # self.ni.setDevName('Dev1')
-        
         kwargs = {Crosshair.ENABLED: True,Crosshair.LINE_PEN: pg.mkPen(color="red", width=1),Crosshair.TEXT_KWARGS: {"color": "green"}}
         self.plot_widget = LivePlotWidget(title=name, **kwargs)
         plot = LiveLinePlot()
@@ -52,11 +69,30 @@ class TabCategory:
         self.plot_widget.sig_crosshair_in.connect(self.crosshair_in)
     
     
-    def getLayout(self):
+    def getLayout(self) -> QVBoxLayout:
+        """getLayout.
+        
+        Returns
+        -------
+        self.tab : QVBoxLayout
+        
+        """
         return self.tab
 
     
-    def createCombo(self,items: list) -> QComboBox:
+    def createCombo(self, items: list) -> QComboBox:
+        """createCombo.
+        
+        Parameters
+        -------
+        items : list
+        
+        
+        Returns
+        -------
+        combo : QComboBox
+        
+        """
         combo = QComboBox()
         for item in items:
             combo.addItem(item)
@@ -64,13 +100,43 @@ class TabCategory:
         return combo
     
     
-    def createButton(self,label: str,toggled: bool) -> QPushButton:
+    def createButton(self, label: str, toggled: bool) -> QPushButton:
+        """createButton.
+        
+        Parameters
+        -------
+        label : str
+        
+        
+        toggled : bool
+         
+        
+        Returns
+        -------
+        button : QPushButton
+        
+        """
         button = QPushButton(label)
         button.setCheckable(toggled)
         return button
     
     
-    def createTextBox(self,limit: str,width: int = 100) -> QLineEdit:
+    def createTextBox(self, limit: str, width: int = 100) -> QLineEdit:
+        """createTextBox.
+        
+        Parameters
+        -------
+        limit : str
+        
+        
+        width : int
+         
+        
+        Returns
+        -------
+        textbox : QLineEdit
+        
+        """
         textbox = QLineEdit()
         lim = QtCore.QRegExp(limit)
         textbox.setValidator(QtGui.QRegExpValidator(lim))
@@ -78,17 +144,50 @@ class TabCategory:
         return textbox
     
     
-    def createLabel(self,value: str) -> QLabel:
+    def createLabel(self, value: str) -> QLabel:
+        """createLabel.
+        
+        Parameters
+        -------
+        value : str
+         
+        
+        Returns
+        -------
+        label : QLabel
+        
+        """
         label = QLabel(value)
         return label
     
     
     def createCheckbox(self) -> QCheckBox:
+        """createCheckbox.
+        
+        Returns
+        -------
+        checkbox : QCheckBox
+        
+        """
         checkbox = QCheckBox()
         return checkbox
     
     
-    def createCheckboxLayout(self,r) -> QHBoxLayout:
+    def createCheckboxLayout(self, r: int) -> Tuple[list, QHBoxLayout]:
+        """createCheckboxLayout.
+        
+        Parameters
+        -------
+        r : int
+         
+        
+        Returns
+        -------
+        checkboxs : list
+        
+        checkbox_layout : QHBoxLayout
+        
+        """
         checkboxs = list()
         labels = list()
         vboxs = list()
@@ -107,8 +206,15 @@ class TabCategory:
         return checkboxs,checkbox_layout   
             
     
-    def crosshair_moved(self,crosshair_pos: QtCore.QPointF) -> None:
-        """Update crosshair X, Y label when crosshair move."""
+    def crosshair_moved(self, crosshair_pos: QtCore.QPointF) -> None:
+        """crosshair_moved.
+        Update crosshair X, Y label when crosshair move.
+        
+        Parameters
+        -------
+        crosshair_pos : QtCore.QPointF
+        
+        """
         self.ch_x_value.setText(f"X: {crosshair_pos.x()}")
         self.ch_y_value.setText(f"Y: {crosshair_pos.y()}")
 
@@ -123,21 +229,12 @@ class TabCategory:
     def crosshair_in(self) -> None:
         """Update crosshair X, Y label when crosshair enters plot area."""
         self.ch_status_value.setText("Crosshair: Inside plot")
-       
+    
+    
+    def plotInit(self) -> None:
+        """plotInit
         
-    def getMessage(self):
-        return self.crosshair_in_message
-    
-    
-    def plotGenerator(self,*data_connectors: tuple,) -> None:
-        pass
-    
-    
-    def slotButtonToggled(self,checked: bool) -> None:
-        pass
-    
-    
-    def plotInit(self):
+        """
         for i in range(2):
             self.ni.setAOData('port' + str(i),0.0)
         for i in range(3):

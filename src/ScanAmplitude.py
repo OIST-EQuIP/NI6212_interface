@@ -1,10 +1,34 @@
+from PyQt5.QtWidgets import QLabel,QHBoxLayout
+
 from TabCategory import TabCategory
+from NIDaqmx import NIDaqmx
+
 import math
 
-from PyQt5.QtWidgets import QHBoxLayout
-
 class ScanAmplitude(TabCategory):
-    def __init__(self, name,ni,state,x,y):
+    """ScanAmplitude Class.
+
+        Parameters
+        ----------
+        TabCategory : 
+        
+    """
+    def __init__(self, name: str, ni: NIDaqmx, state: QLabel, x: QLabel, y: QLabel) -> None:
+        """Constructor.
+
+        Parameters
+        ----------
+        name : str
+            
+        ni : NIDaqmx
+        
+        state : QLabel
+        
+        x : QLabel
+        
+        y : QLabel
+        
+        """
         super().__init__(name,ni,state,x,y)
         self.x = 0
         self.AO_value = 0
@@ -99,7 +123,14 @@ class ScanAmplitude(TabCategory):
         self.tab.addLayout(self.hbox_main)
         
     
-    def slotScanButtonToggled(self,checked: bool) -> None:
+    def slotScanButtonToggled(self, checked: bool) -> None:
+        """slotScanButtonToggled.
+
+        Parameters
+        ----------
+        checked : bool
+        
+        """
         if checked:
             self.data_connector.resume()
             self.plot_running = True
@@ -131,7 +162,14 @@ class ScanAmplitude(TabCategory):
             self.scan_button.setText('SCAN')
             
     
-    def slotLockButtonToggled(self,checked: bool) -> None:
+    def slotLockButtonToggled(self, checked: bool) -> None:
+        """slotLockButtonToggled.
+
+        Parameters
+        ----------
+        checked : bool
+        
+        """
         if checked:
             self.data_connector.pause()
             self.plot_running = False
@@ -142,7 +180,14 @@ class ScanAmplitude(TabCategory):
             self.lock_button.setText('LOCK')
             
     
-    def plotGenerator(self,*data_connectors: tuple) -> None:
+    def plotGenerator(self, *data_connectors: tuple) -> None:
+        """plotGenerator.
+
+        Parameters
+        ----------
+        data_connectors : tuple
+        
+        """
         while True:
             for data_connector in data_connectors:
                 if self.plot_running == True:
@@ -164,7 +209,7 @@ class ScanAmplitude(TabCategory):
                         AO_value = threshold
                         self.detection(DO_port,DO_channel,dt)
                     else:
-                        AO_value = self.AOUpdateRate(vmax,vmin,step,AI_value)
+                        AO_value = self.AOUpdateRate(vmax,vmin,vamp,step,AI_value)
                     
                     self.ni.setAOData(AO_channel,AO_value)
                     data_connector.cb_append_data_point(AI_value,self.x)
@@ -173,7 +218,32 @@ class ScanAmplitude(TabCategory):
                 
             self.sleep(0.02)
     
-    def AOUpdateRate(self,vmax,vmin,step,now):
+    
+    def AOUpdateRate(self, vmax: float, vmin: float, vamp: float, step: float, now: float) -> float:
+        """AOUpdateRate.
+
+        Parameters
+        ----------
+        vmax : float
+        
+        
+        vmin : float
+        
+        
+        vamp : float
+        
+        
+        step : float
+        
+        
+        now : float
+        
+        Returns
+        -------
+        result : float
+        
+        
+        """
         # todo vamp
         if self.update_rate_state:
             result = now + step
@@ -190,7 +260,21 @@ class ScanAmplitude(TabCategory):
         return result
     
      
-    def detection(self,do_port,do_channel,dt):
+    def detection(self,do_port: str, do_channel: str, dt: float) -> None:
+        """detection.
+        
+        Parameters
+        ----------
+        do_port : str
+            
+        
+        do_channel : str
+        
+        
+        dt : float
+            
+            
+        """
         if not self.detection_state:
             self.detection_state = True
             self.ni.setDOData(do_port,[do_channel],True)

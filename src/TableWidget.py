@@ -8,10 +8,22 @@ from AnalogOutput import AnalogOutput
 from DigitalOutput import DigitalOutput
 from ScanAmplitude import ScanAmplitude
 
-from time import sleep
-
 class TableWidget(QWidget):
-    def __init__(self,parent) -> None:
+    """TableWidget Class.
+
+        Parameters
+        ----------
+        QWidget : 
+        
+    """
+    def __init__(self, parent) -> None:
+        """Constructor.
+
+        Parameters
+        ----------
+        parent : 
+        
+        """
         super(QWidget,self).__init__(parent)
         self.ni = NIDaqmx()
         self.layout = QVBoxLayout(self)
@@ -63,7 +75,6 @@ class TableWidget(QWidget):
         self.initButton.setFixedWidth(70)
         self.initButton.clicked.connect(self.initButtonClicked) 
         
-        
         self.hbox = QHBoxLayout()
         self.hbox.addWidget(label)
         self.hbox.addWidget(self.dev_name)
@@ -83,22 +94,36 @@ class TableWidget(QWidget):
         Thread(target=self.digitalOutput.plotGenerator, args=(self.digitalOutput.data_connector,)).start()
         Thread(target=self.scanAmplitude.plotGenerator, args=(self.scanAmplitude.data_connector,)).start()
     
-
-    def createCombo(self,items: list) -> QComboBox:
-        combo = QComboBox(self)
-        for item in items:
-            combo.addItem(item)
-            
-        return combo
     
-    
-    def createButton(self,label: str,toggled: bool) -> QPushButton:
+    def createButton(self, label: str, toggled: bool) -> QPushButton:
+        """createButton.
+        
+        Parameters
+        -------
+        label : str
+        
+        
+        toggled : bool
+         
+        
+        Returns
+        -------
+        button : QPushButton
+        
+        """
         button = QPushButton(label)
         button.setCheckable(toggled)
         return button
     
     
-    def slotEditButtonToggled(self,checked: bool) -> None:
+    def slotEditButtonToggled(self, checked: bool) -> None:
+        """slotEditButtonToggled.
+
+        Parameters
+        ----------
+        checked : bool
+        
+        """
         if checked:
             self.editButton.setText("Set")
             self.dev_name.setEnabled(True)
@@ -108,7 +133,10 @@ class TableWidget(QWidget):
             self.dev_name.setEnabled(False)
             
     
-    def initButtonClicked(self):
+    def initButtonClicked(self) -> None:
+        """initButtonClicked.
+        
+        """
         self.scanAmplitude.detection_state = False
         ao_channel = ['ao0','ao1']
         do_port = ['port0','port1','port2']
@@ -118,4 +146,3 @@ class TableWidget(QWidget):
         for i in do_port:
             self.ni.setDOData(i,do_channel,False)
         
-        # self.init_label.setText('init!!')
