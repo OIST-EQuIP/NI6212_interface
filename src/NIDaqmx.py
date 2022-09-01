@@ -44,11 +44,25 @@ class NIDaqmx:
             pass
         
         
-    def setDOData(self,port: str,lineCh: list,data: list) -> None:
+    def setDOData(self,port: str,lineCh: list,data: bool) -> None:
         try:
             with nidaqmx.Task() as task:
                 for i in lineCh:
                     task.do_channels.add_do_chan(self.dev + "/" + port + "/" + i, line_grouping=LineGrouping.CHAN_PER_LINE)
-                task.write(data)
+                task.write([data] * len(lineCh))
         except nidaqmx.errors.DaqError:
             pass
+    
+    
+    def getDOData(self,port: str,lineCh: list) -> bool:
+        # try:
+        #     with nidaqmx.Task() as task:
+        #         for i in lineCh:
+        #             task.do_channels.add_do_chan(self.dev + "/" + port + "/" + i, line_grouping=LineGrouping.CHAN_PER_LINE)
+        #         return task.read()
+        # except nidaqmx.errors.DaqError:
+        #     return False
+        with nidaqmx.Task() as task:
+            for i in lineCh:
+                task.di_channels.add_di_chan(self.dev + "/" + port + "/" + i, line_grouping=LineGrouping.CHAN_PER_LINE)
+            return task.read()
