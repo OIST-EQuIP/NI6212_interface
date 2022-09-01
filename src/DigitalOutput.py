@@ -56,12 +56,11 @@ class DigitalOutput(TabCategory):
                 if self.plot_running == True: 
                     port = 'port' + self.port_combo.currentText()[-1]
                     select = list()
-                    status = list()
+                    status = self.DO_state
                     channels = list()
                     for i in range(len(self.checkboxs)):
                         if self.checkboxs[i].checkState() == self.checked:
                             select.append(i)
-                            status.append(self.DO_state)
 
                     for i in select:
                         channels.append(f'line{i}')
