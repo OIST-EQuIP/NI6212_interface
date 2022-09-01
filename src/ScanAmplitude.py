@@ -1,14 +1,15 @@
 from TabCategory import TabCategory
+import math
 
 from PyQt5.QtWidgets import QHBoxLayout
 
 class ScanAmplitude(TabCategory):
     def __init__(self, name,ni,state,x,y):
         super().__init__(name,ni,state,x,y)
-        self.detection = False
         self.x = 0
         self.AO_value = 0
-        self.state = True
+        self.update_rate_state = True
+        self.detection_state = False
         # Label
         self.system_message = self.createLabel('')
         # TextBox
@@ -100,7 +101,6 @@ class ScanAmplitude(TabCategory):
     
     def slotScanButtonToggled(self,checked: bool) -> None:
         if checked:
-            self.ni.setAOData('ao' + self.AO_channel_combo.currentText()[-1],0)
             self.data_connector.resume()
             self.plot_running = True
             self.threshold.setEnabled(False)
@@ -115,7 +115,6 @@ class ScanAmplitude(TabCategory):
             self.scan_button.setText('STOP')
             self.sleep(0.02)
         else:
-            # self.plotInit()
             self.data_connector.pause()
             self.plot_running = False
             self.threshold.setEnabled(True)
@@ -159,35 +158,40 @@ class ScanAmplitude(TabCategory):
                     DO_channel = 'line' + self.DO_channel_combo.currentText()[-1]
                     
                     AI_value = self.ni.getAIData(AI_channel)[0]
-                    AO_value,self.state = self.AOUpdateRate(vmax,vmin,vamp,step,AI_value,self.state)
+                    
+                    print(math.isclose(threshold,AI_value,rel_tol=0.01))
+                    if math.isclose(threshold,AI_value,rel_tol=0.01):
+                        AO_value = threshold
+                        self.detection(DO_port,DO_channel,dt)
+                    else:
+                        AO_value = self.AOUpdateRate(vmax,vmin,step,AI_value)
                     
                     self.ni.setAOData(AO_channel,AO_value)
                     data_connector.cb_append_data_point(AI_value,self.x)
                     
-                    self.ScanAmplitude(threshold,AI_value,DO_port,DO_channel,dt)
-                    
                     self.x += 1
                 
             self.sleep(0.02)
-        
-        
-    def AOUpdateRate(self,vmax: float,vmin: float,vamp: float,step: float,now_value: float,now_state: bool) -> float:        
-        if now_state:
-            result = now_value + step
-            state = now_state if result < vmax and self.np.abs(result) < vamp else not(now_state)
-        else:
-            result = now_value - step 
-            state = now_state if result > vmin and self.np.abs(result) < vamp else not(now_state)
-        
-        print(result)
-        
-        return result,state
     
-
-    def ScanAmplitude(self,threshold: float,now: float, port: str, channel: str, dt: float) -> None:
-        if threshold >= now:
-            self.detection = True
+    def AOUpdateRate(self,vmax,vmin,step,now):
+        # todo vamp
+        if self.update_rate_state:
+            result = now + step
+            if step > 0 and result >= vmax: self.update_rate_state = not self.update_rate_state
+            if step < 0 and result <= vmin: self.update_rate_state = not self.update_rate_state 
+        else:
+            result = now - step
+            if step > 0 and result <= vmin: self.update_rate_state = not self.update_rate_state
+            if step < 0 and result >= vmax: self.update_rate_state = not self.update_rate_state 
+  
+        print(result)
+        print(f'vmax: {vmax}')
+            
+        return result
+    
+     
+    def detection(self,do_port,do_channel,dt):
+        if not self.detection_state:
+            self.detection_state = True
+            self.ni.setDOData(do_port,[do_channel],True)
             self.sleep(dt/1000)
-            self.ni.setDOData(port,[channel],[True])
-        
-        
