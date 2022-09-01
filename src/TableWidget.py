@@ -8,6 +8,8 @@ from AnalogOutput import AnalogOutput
 from DigitalOutput import DigitalOutput
 from ScanAmplitude import ScanAmplitude
 
+from time import sleep
+
 class TableWidget(QWidget):
     def __init__(self,parent) -> None:
         super(QWidget,self).__init__(parent)
@@ -44,16 +46,22 @@ class TableWidget(QWidget):
         self.tab4.setLayout(self.scanAmplitude.getLayout())
         
         label = QLabel("Device Name")
-        label.setFixedWidth(80)
+        label.setFixedWidth(70)
         self.dev_name = QLineEdit(self)
-        self.dev_name.setFixedWidth(150)
+        self.dev_name.setFixedWidth(100)
         self.dev_name.setText("Dev1")
         self.dev_name.setEnabled(False)
         self.ni.setDevName(self.dev_name.text())
         
         self.editButton = self.createButton('Edit',True)
-        self.editButton.setFixedWidth(100)
+        self.editButton.setFixedWidth(70)
         self.editButton.toggled.connect(self.slotEditButtonToggled)
+        
+        self.init_label = QLabel('')
+        self.init_label.setFixedWidth(100)
+        self.initButton = self.createButton('Init',False)
+        self.initButton.setFixedWidth(70)
+        self.initButton.clicked.connect(self.initButtonClicked) 
         
         
         self.hbox = QHBoxLayout()
@@ -63,6 +71,8 @@ class TableWidget(QWidget):
         self.hbox.addWidget(self.ch_status_value)
         self.hbox.addWidget(self.ch_x_value)
         self.hbox.addWidget(self.ch_y_value)
+        self.hbox.addWidget(self.init_label)
+        self.hbox.addWidget(self.initButton)
         
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
@@ -96,3 +106,16 @@ class TableWidget(QWidget):
             self.editButton.setText("Edit")
             self.ni.setDevName(self.dev_name.text())
             self.dev_name.setEnabled(False)
+            
+    
+    def initButtonClicked(self):
+        self.scanAmplitude.detection_state = False
+        ao_channel = ['ao0','ao1']
+        do_port = ['port0','port1','port2']
+        do_channel = ['line0','line1','line2','line3','line4','line5','line6','line7']
+        for i in ao_channel:
+            self.ni.setAOData(i,0.0)
+        for i in do_port:
+            self.ni.setDOData(i,do_channel,False)
+        
+        # self.init_label.setText('init!!')
