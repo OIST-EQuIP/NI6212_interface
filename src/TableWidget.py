@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QHBoxLayout
 from threading import Thread
 
-from NIDaqmx import NIDaqmx
+from NIDaqmxController import NIDaqmxController
 
 from AnalogInput import AnalogInput
 from AnalogOutput import AnalogOutput
@@ -25,7 +25,7 @@ class TableWidget(QWidget):
         
         """
         super(QWidget,self).__init__(parent)
-        self.ni = NIDaqmx()
+        self.ni = NIDaqmxController()
         self.layout = QVBoxLayout(self)
         
         self.ch_status_value = QLabel("Crosshair: Outside plot")

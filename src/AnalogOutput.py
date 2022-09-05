@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLabel
 
 from TabCategory import TabCategory
-from NIDaqmx import NIDaqmx
+from NIDaqmxController import NIDaqmxController
 
 class AnalogOutput(TabCategory):
     """AnalogOutput Class.
@@ -11,7 +11,7 @@ class AnalogOutput(TabCategory):
         TabCategory : 
         
     """
-    def __init__(self, name: str, ni: NIDaqmx, state: QLabel, x: QLabel, y: QLabel) -> None:
+    def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
         """Constructor.
 
         Parameters

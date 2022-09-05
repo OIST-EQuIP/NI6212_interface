@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLabel,QHBoxLayout
 
 from TabCategory import TabCategory
-from NIDaqmx import NIDaqmx
+from NIDaqmxController import NIDaqmxController
 
 import math
 
@@ -13,7 +13,7 @@ class ScanAmplitude(TabCategory):
         TabCategory : 
         
     """
-    def __init__(self, name: str, ni: NIDaqmx, state: QLabel, x: QLabel, y: QLabel) -> None:
+    def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
         """Constructor.
 
         Parameters
@@ -134,6 +134,7 @@ class ScanAmplitude(TabCategory):
         if checked:
             self.data_connector.resume()
             self.plot_running = True
+            self.update_rate_state = True
             self.threshold.setEnabled(False)
             self.vamp.setEnabled(False)
             self.step.setEnabled(False)
@@ -244,6 +245,7 @@ class ScanAmplitude(TabCategory):
         
         
         """
+        print(f'step: {step}')
         # todo vamp
         if self.update_rate_state:
             result = now + step

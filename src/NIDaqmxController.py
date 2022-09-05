@@ -1,7 +1,7 @@
 import nidaqmx
 from nidaqmx.constants import (LineGrouping)
 
-class NIDaqmx:
+class NIDaqmxController:
     """Class to control NIDAQ devices."""
     def __init__(self):
         """Constructor.

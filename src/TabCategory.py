@@ -13,7 +13,7 @@ import numpy as np
 
 from time import sleep
 
-from NIDaqmx import NIDaqmx
+from NIDaqmxController import NIDaqmxController
 
 from typing import Tuple
 
@@ -21,7 +21,7 @@ class TabCategory:
     """TabCategory Class. 
         
     """
-    def __init__(self, name: str, ni: NIDaqmx, state: QLabel, x: QLabel, y: QLabel):
+    def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel):
         """Constructor.
 
         Parameters
