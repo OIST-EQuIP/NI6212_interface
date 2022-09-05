@@ -33,20 +33,28 @@ $ python App.py
 
 There are three tabs on the application: "Analog Input", "Analog Output", "Digital Output", and 'Scan Amplitude".
 
+### Analog Input
+
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/AI.PNG)
 
 "Analog Input" measures the voltage on the channel selected in the drop-down list.
 To start measurement, press the "START" button. To exit, press the button labeled "STOP". "Analog Input" can detect -5.4 to 5.4v.
+
+### Analog Output
 
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/AO.PNG)
 
 "Analog Output" outputs the specified voltage to the channel selected in the drop-down list.
 Specifiable Output values are from -10 to 10.
 
+### Digital Output
+
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/DO.PNG)
 
 In "Digital Output", voltage flows to the channel selected by the check box.
 Press the "START" button to start measurement, and press the "ON" button to output the signal. Pressing the "OFF" button stops signal output.
+
+### Scan Amplitude
 
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/SA.PNG)
 
