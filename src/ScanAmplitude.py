@@ -88,7 +88,7 @@ class ScanAmplitude(TabCategory):
         hbox5.addWidget(self.step)
         hbox5.addWidget(self.createLabel('V'))
         hbox6 = QHBoxLayout()
-        hbox6.addWidget(self.createLabel('TTL dt'))
+        hbox6.addWidget(self.createLabel('dt'))
         hbox6.addWidget(self.dt)
         hbox6.addWidget(self.createLabel('ms'))
         hbox7 = QHBoxLayout()

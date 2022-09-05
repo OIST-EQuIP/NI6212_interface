@@ -31,12 +31,12 @@ $ python App.py
 
 ## Description
 
-There are three tabs on the application: "Analog Input," "Analog Output," and "Digital Output".
+There are three tabs on the application: "Analog Input", "Analog Output", "Digital Output", and 'Scan Amplitude".
 
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/AI.PNG)
 
 "Analog Input" measures the voltage on the channel selected in the drop-down list.
-To start measurement, press the "START" button. To exit, press the button labeled "STOP".
+To start measurement, press the "START" button. To exit, press the button labeled "STOP". "Analog Input" can detect -5.4 to 5.4v.
 
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/AO.PNG)
 
@@ -48,8 +48,23 @@ Specifiable Output values are from -10 to 10.
 In "Digital Output", voltage flows to the channel selected by the check box.
 Press the "START" button to start measurement, and press the "ON" button to output the signal. Pressing the "OFF" button stops signal output.
 
+![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/SA.PNG)
+
+"Scan Amplitude" sets the threshold value and performs the scanning operation.
+The analog output is gradually increased until the analog input reaches the threshold value.
+When the analog input reaches the threshold value, the analog output stops increasing or decreasing and a digital signal is output.
+
+Enter a threshold value in the "Threshold" field.
+"vmax" and "vmin" are set to the maximum and minimum values that the USB-6212 can detect on the analog input.
+"vamp" allows you to set the amplitude height.
+"step size" allows you to set the amplitude increase/decrease value.
+With "dt", you can set the output wait time for the digital signal to be output after the threshold value is detected.
+"AO Channel", "AI Channel", and "DI Port/Channel" allow you to select the port and channel to be used.
+
 The device name can be edited by pressing the "Edit" button.
 If the device name is different from the default value, please change it here.
+
+If the behavior is not correct, you can initialize it with the "Init" button. It is recommended to stop all operations before pressing the "Init" button.
 
 ## Reference
 [PyQt5 document](https://pythonspot.com/pyqt5/)
