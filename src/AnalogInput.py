@@ -57,10 +57,12 @@ class AnalogInput(TabCategory):
         if checked:
             self.data_connector.resume()
             self.plot_running = True
+            self.channel_combo.setEnabled(False)
             self.AI_button.setText('STOP')
         else:
             self.data_connector.pause()
             self.plot_running = False
+            self.channel_combo.setEnabled(True)
             self.AI_button.setText('EXECUTE')
             
             

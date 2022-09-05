@@ -81,10 +81,16 @@ class DigitalOutput(TabCategory):
         if checked:
             self.data_connector.resume()
             self.plot_running = True
+            self.port_combo.setEnabled(False)
+            for i in range(len(self.checkboxs)):
+                self.checkboxs[i].setEnabled(False)
             self.execute_button.setText('STOP')
         else:
             self.data_connector.pause()
             self.plot_running = False
+            self.port_combo.setEnabled(True)
+            for i in range(len(self.checkboxs)):
+                self.checkboxs[i].setEnabled(True)
             self.execute_button.setText('EXECUTE')
                     
 

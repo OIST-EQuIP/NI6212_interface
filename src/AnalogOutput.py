@@ -30,6 +30,7 @@ class AnalogOutput(TabCategory):
         super().__init__(name,ni,state,x,y)
         ## TextBox
         self.textbox = self.createTextBox("[0-9-.]+")
+        self.textbox.setText('0.0')
         ## Label
         self.message = self.createLabel('')
         ## Combo
@@ -63,10 +64,14 @@ class AnalogOutput(TabCategory):
         if checked:
             self.data_connector.resume()
             self.plot_running = True
+            self.textbox.setEnabled(False)
+            self.channel_combo.setEnabled(False)
             self.button.setText('STOP')
         else:
             self.data_connector.pause()
             self.plot_running = False
+            self.textbox.setEnabled(True)
+            self.channel_combo.setEnabled(True)
             self.button.setText('EXECUTE')
     
     
