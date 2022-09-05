@@ -6,32 +6,8 @@ from NIDaqmxController import NIDaqmxController
 import math
 
 class ScanAmplitude(TabCategory):
-    """ScanAmplitude Class.
-
-        Parameters
-        ----------
-        TabCategory : 
-        
-    """
     def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
-        """Constructor.
-
-        Parameters
-        ----------
-        name : str
-            
-        ni : NIDaqmx
-        
-        state : QLabel
-        
-        x : QLabel
-        
-        y : QLabel
-        
-        """
         super().__init__(name,ni,state,x,y)
-        self.x = 0
-        self.AO_value = 0
         self.update_rate_state = True
         self.detection_state = False
         # Label
@@ -124,13 +100,6 @@ class ScanAmplitude(TabCategory):
         
     
     def slotScanButtonToggled(self, checked: bool) -> None:
-        """slotScanButtonToggled.
-
-        Parameters
-        ----------
-        checked : bool
-        
-        """
         if checked:
             self.data_connector.resume()
             self.plot_running = True
@@ -164,13 +133,6 @@ class ScanAmplitude(TabCategory):
             
     
     def slotLockButtonToggled(self, checked: bool) -> None:
-        """slotLockButtonToggled.
-
-        Parameters
-        ----------
-        checked : bool
-        
-        """
         if checked:
             self.data_connector.pause()
             self.plot_running = False
@@ -182,13 +144,7 @@ class ScanAmplitude(TabCategory):
             
     
     def plotGenerator(self, *data_connectors: tuple) -> None:
-        """plotGenerator.
-
-        Parameters
-        ----------
-        data_connectors : tuple
-        
-        """
+        x = 0
         while True:
             for data_connector in data_connectors:
                 if self.plot_running == True:
@@ -205,9 +161,8 @@ class ScanAmplitude(TabCategory):
                     
                     AI_value = self.ni.getAIData(AI_channel)[0]
                     
-                    data_connector.cb_append_data_point(AI_value,self.x)
+                    data_connector.cb_append_data_point(AI_value,x)
                     
-                    print(math.isclose(threshold,AI_value,rel_tol=0.01))
                     if math.isclose(threshold,AI_value,rel_tol=0.01):
                         AO_value = threshold
                         self.detection(DO_port,DO_channel,dt)
@@ -216,38 +171,12 @@ class ScanAmplitude(TabCategory):
                     
                     self.ni.setAOData(AO_channel,AO_value)
                     
-                    self.x += 1
+                    x += 1
                 
             self.sleep(0.02)
     
     
-    def AOUpdateRate(self, vmax: float, vmin: float, vamp: float, step: float, now: float) -> float:
-        """AOUpdateRate.
-
-        Parameters
-        ----------
-        vmax : float
-        
-        
-        vmin : float
-        
-        
-        vamp : float
-        
-        
-        step : float
-        
-        
-        now : float
-        
-        Returns
-        -------
-        result : float
-        
-        
-        """
-        print(f'step: {step}')
-        
+    def AOUpdateRate(self, vmax: float, vmin: float, vamp: float, step: float, now: float) -> float:        
         if vamp > vmax or vamp < vmin:
             mVamp = max(vmax,-(vmin))
         else:
@@ -269,28 +198,11 @@ class ScanAmplitude(TabCategory):
             if step < 0 and result >= mVamp:
                 self.update_rate_state = not self.update_rate_state
                 result = mVamp
-  
-        print(result)
-        print(f'vamp: {mVamp}')
             
         return result
     
      
     def detection(self,do_port: str, do_channel: str, dt: float) -> None:
-        """detection.
-        
-        Parameters
-        ----------
-        do_port : str
-            
-        
-        do_channel : str
-        
-        
-        dt : float
-            
-            
-        """
         if not self.detection_state:
             self.sleep(dt/1000)
             self.detection_state = True

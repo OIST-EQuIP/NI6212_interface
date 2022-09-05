@@ -4,29 +4,7 @@ from TabCategory import TabCategory
 from NIDaqmxController import NIDaqmxController
 
 class AnalogOutput(TabCategory):
-    """AnalogOutput Class.
-
-        Parameters
-        ----------
-        TabCategory : 
-        
-    """
     def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
-        """Constructor.
-
-        Parameters
-        ----------
-        name : str
-            
-        ni : NIDaqmx
-        
-        state : QLabel
-        
-        x : QLabel
-        
-        y : QLabel
-        
-        """
         super().__init__(name,ni,state,x,y)
         ## TextBox
         self.textbox = self.createTextBox("[0-9-.]+")
@@ -54,13 +32,6 @@ class AnalogOutput(TabCategory):
         
         
     def slotButtonToggled(self, checked: bool) -> None:
-        """slotButtonToggled.
-
-        Parameters
-        ----------
-        checked : bool
-        
-        """
         if checked:
             self.data_connector.resume()
             self.plot_running = True
@@ -76,13 +47,6 @@ class AnalogOutput(TabCategory):
     
     
     def plotGenerator(self, *data_connectors: tuple) -> None:
-        """plotGenerator.
-
-        Parameters
-        ----------
-        data_connectors : tuple
-        
-        """
         x = 0
         while True:
             value = self.textbox.text()

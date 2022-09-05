@@ -4,29 +4,7 @@ from TabCategory import TabCategory
 from NIDaqmxController import NIDaqmxController
 
 class DigitalOutput(TabCategory):
-    """DigitalOutput Class.
-
-        Parameters
-        ----------
-        TabCategory : 
-        
-    """
     def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
-        """Constructor.
-
-        Parameters
-        ----------
-        name : str
-            
-        ni : NIDaqmx
-        
-        state : QLabel
-        
-        x : QLabel
-        
-        y : QLabel
-        
-        """
         super().__init__(name,ni,state,x,y)
         self.DO_state = False
         # Combo
@@ -55,13 +33,6 @@ class DigitalOutput(TabCategory):
         
         
     def slotStateButtonToggled(self, checked: bool) -> None:
-        """slotButtonToggled.
-
-        Parameters
-        ----------
-        checked : bool
-        
-        """
         if checked:
             self.DO_state = True
             self.state_button.setText('OFF')
@@ -71,13 +42,6 @@ class DigitalOutput(TabCategory):
             
     
     def slotExecuteButtonToggled(self, checked: bool) -> None:
-        """slotExecuteButtonToggled.
-
-        Parameters
-        ----------
-        checked : bool
-        
-        """
         if checked:
             self.data_connector.resume()
             self.plot_running = True
@@ -95,13 +59,6 @@ class DigitalOutput(TabCategory):
                     
 
     def plotGenerator(self,*data_connectors: tuple) -> None:
-        """plotGenerator.
-
-        Parameters
-        ----------
-        data_connectors : tuple
-        
-        """
         x = 0
         while True: 
             for data_connector in data_connectors:

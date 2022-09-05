@@ -4,29 +4,7 @@ from TabCategory import TabCategory
 from NIDaqmxController import NIDaqmxController
 
 class AnalogInput(TabCategory):
-    """AnalogInput Class.
-
-        Parameters
-        ----------
-        TabCategory : 
-        
-    """
     def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
-        """Constructor.
-
-        Parameters
-        ----------
-        name : str
-            
-        ni : NIDaqmx
-        
-        state : QLabel
-        
-        x : QLabel
-        
-        y : QLabel
-        
-        """
         super().__init__(name,ni,state,x,y)
         # Combo
         items = ['AI 0','AI 1','AI 2','AI 3','AI 4','AI 5','AI 6','AI 7']
@@ -47,13 +25,6 @@ class AnalogInput(TabCategory):
         
     
     def slotButtonToggled(self, checked: bool) -> None:
-        """slotButtonToggled.
-
-        Parameters
-        ----------
-        checked : bool
-        
-        """
         if checked:
             self.data_connector.resume()
             self.plot_running = True
@@ -67,13 +38,6 @@ class AnalogInput(TabCategory):
             
             
     def plotGenerator(self, *data_connectors: tuple) -> None:
-        """plotGenerator.
-
-        Parameters
-        ----------
-        data_connectors : tuple
-        
-        """
         x = 0
         while True:
             for data_connector in data_connectors:

@@ -18,25 +18,7 @@ from NIDaqmxController import NIDaqmxController
 from typing import Tuple
 
 class TabCategory:
-    """TabCategory Class. 
-        
-    """
     def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel):
-        """Constructor.
-
-        Parameters
-        ----------
-        name : str
-            
-        ni : NIDaqmx
-        
-        state : QLabel
-        
-        x : QLabel
-        
-        y : QLabel
-        
-        """
         self.tab = QVBoxLayout()
         self.hbox_main = QHBoxLayout()
         self.hbox_main.addStretch(1)
@@ -70,29 +52,10 @@ class TabCategory:
     
     
     def getLayout(self) -> QVBoxLayout:
-        """getLayout.
-        
-        Returns
-        -------
-        self.tab : QVBoxLayout
-        
-        """
         return self.tab
 
     
     def createCombo(self, items: list) -> QComboBox:
-        """createCombo.
-        
-        Parameters
-        -------
-        items : list
-        
-        
-        Returns
-        -------
-        combo : QComboBox
-        
-        """
         combo = QComboBox()
         for item in items:
             combo.addItem(item)
@@ -101,42 +64,12 @@ class TabCategory:
     
     
     def createButton(self, label: str, toggled: bool) -> QPushButton:
-        """createButton.
-        
-        Parameters
-        -------
-        label : str
-        
-        
-        toggled : bool
-         
-        
-        Returns
-        -------
-        button : QPushButton
-        
-        """
         button = QPushButton(label)
         button.setCheckable(toggled)
         return button
     
     
     def createTextBox(self, limit: str, width: int = 100) -> QLineEdit:
-        """createTextBox.
-        
-        Parameters
-        -------
-        limit : str
-        
-        
-        width : int
-         
-        
-        Returns
-        -------
-        textbox : QLineEdit
-        
-        """
         textbox = QLineEdit()
         lim = QtCore.QRegExp(limit)
         textbox.setValidator(QtGui.QRegExpValidator(lim))
@@ -145,49 +78,16 @@ class TabCategory:
     
     
     def createLabel(self, value: str) -> QLabel:
-        """createLabel.
-        
-        Parameters
-        -------
-        value : str
-         
-        
-        Returns
-        -------
-        label : QLabel
-        
-        """
         label = QLabel(value)
         return label
     
     
     def createCheckbox(self) -> QCheckBox:
-        """createCheckbox.
-        
-        Returns
-        -------
-        checkbox : QCheckBox
-        
-        """
         checkbox = QCheckBox()
         return checkbox
     
     
     def createCheckboxLayout(self, r: int) -> Tuple[list, QHBoxLayout]:
-        """createCheckboxLayout.
-        
-        Parameters
-        -------
-        r : int
-         
-        
-        Returns
-        -------
-        checkboxs : list
-        
-        checkbox_layout : QHBoxLayout
-        
-        """
         checkboxs = list()
         labels = list()
         vboxs = list()
@@ -207,39 +107,16 @@ class TabCategory:
             
     
     def crosshair_moved(self, crosshair_pos: QtCore.QPointF) -> None:
-        """crosshair_moved.
-        Update crosshair X, Y label when crosshair move.
-        
-        Parameters
-        -------
-        crosshair_pos : QtCore.QPointF
-        
-        """
         self.ch_x_value.setText(f"X: {crosshair_pos.x()}")
         self.ch_y_value.setText(f"Y: {crosshair_pos.y()}")
 
 
     def crosshair_out(self) -> None:
-        """Update crosshair X, Y label when crosshair leaves plot area."""
         self.ch_status_value.setText("Crosshair: Outside plot")
         self.ch_x_value.setText(f"X: Unavailable")
         self.ch_y_value.setText(f"Y: Unavailable")
 
 
     def crosshair_in(self) -> None:
-        """Update crosshair X, Y label when crosshair enters plot area."""
         self.ch_status_value.setText("Crosshair: Inside plot")
-    
-    
-    def plotInit(self) -> None:
-        """plotInit
-        
-        """
-        for i in range(2):
-            self.ni.setAOData('port' + str(i),0.0)
-        for i in range(3):
-            for j in range(8):
-                self.ni.setDOData('port' + str(i),['line' + str(j)],[False])
-        sleep(0.5)
-        print('init')
         

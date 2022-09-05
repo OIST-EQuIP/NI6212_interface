@@ -9,21 +9,7 @@ from DigitalOutput import DigitalOutput
 from ScanAmplitude import ScanAmplitude
 
 class TableWidget(QWidget):
-    """TableWidget Class.
-
-        Parameters
-        ----------
-        QWidget : 
-        
-    """
     def __init__(self, parent) -> None:
-        """Constructor.
-
-        Parameters
-        ----------
-        parent : 
-        
-        """
         super(QWidget,self).__init__(parent)
         self.ni = NIDaqmxController()
         self.layout = QVBoxLayout(self)
@@ -96,34 +82,12 @@ class TableWidget(QWidget):
     
     
     def createButton(self, label: str, toggled: bool) -> QPushButton:
-        """createButton.
-        
-        Parameters
-        -------
-        label : str
-        
-        
-        toggled : bool
-         
-        
-        Returns
-        -------
-        button : QPushButton
-        
-        """
         button = QPushButton(label)
         button.setCheckable(toggled)
         return button
     
     
     def slotEditButtonToggled(self, checked: bool) -> None:
-        """slotEditButtonToggled.
-
-        Parameters
-        ----------
-        checked : bool
-        
-        """
         if checked:
             self.editButton.setText("Set")
             self.dev_name.setEnabled(True)
@@ -134,9 +98,6 @@ class TableWidget(QWidget):
             
     
     def initButtonClicked(self) -> None:
-        """initButtonClicked.
-        
-        """
         self.scanAmplitude.detection_state = False
         ao_channel = ['ao0','ao1']
         do_port = ['port0','port1','port2']
