@@ -205,6 +205,8 @@ class ScanAmplitude(TabCategory):
                     
                     AI_value = self.ni.getAIData(AI_channel)[0]
                     
+                    data_connector.cb_append_data_point(AI_value,self.x)
+                    
                     print(math.isclose(threshold,AI_value,rel_tol=0.01))
                     if math.isclose(threshold,AI_value,rel_tol=0.01):
                         AO_value = threshold
@@ -213,7 +215,6 @@ class ScanAmplitude(TabCategory):
                         AO_value = self.AOUpdateRate(vmax,vmin,vamp,step,AI_value)
                     
                     self.ni.setAOData(AO_channel,AO_value)
-                    data_connector.cb_append_data_point(AI_value,self.x)
                     
                     self.x += 1
                 
@@ -246,18 +247,31 @@ class ScanAmplitude(TabCategory):
         
         """
         print(f'step: {step}')
-        # todo vamp
+        
+        if vamp > vmax or vamp < vmin:
+            mVamp = max(vmax,-(vmin))
+        else:
+            mVamp = vamp
+        
         if self.update_rate_state:
             result = now + step
-            if step > 0 and result >= vmax: self.update_rate_state = not self.update_rate_state
-            if step < 0 and result <= vmin: self.update_rate_state = not self.update_rate_state 
+            if step > 0 and result >= mVamp: 
+                self.update_rate_state = not self.update_rate_state
+                result = mVamp
+            if step < 0 and result <= -(mVamp): 
+                self.update_rate_state = not self.update_rate_state
+                result = -(mVamp)
         else:
             result = now - step
-            if step > 0 and result <= vmin: self.update_rate_state = not self.update_rate_state
-            if step < 0 and result >= vmax: self.update_rate_state = not self.update_rate_state 
+            if step > 0 and result <= -(mVamp):
+                self.update_rate_state = not self.update_rate_state
+                result = -(mVamp)
+            if step < 0 and result >= mVamp:
+                self.update_rate_state = not self.update_rate_state
+                result = mVamp
   
         print(result)
-        print(f'vmax: {vmax}')
+        print(f'vamp: {mVamp}')
             
         return result
     
@@ -278,6 +292,6 @@ class ScanAmplitude(TabCategory):
             
         """
         if not self.detection_state:
+            self.sleep(dt/1000)
             self.detection_state = True
             self.ni.setDOData(do_port,[do_channel],True)
-            self.sleep(dt/1000)
