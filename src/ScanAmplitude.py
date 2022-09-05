@@ -101,9 +101,6 @@ class ScanAmplitude(TabCategory):
     
     def slotScanButtonToggled(self, checked: bool) -> None:
         if checked:
-            self.data_connector.resume()
-            self.plot_running = True
-            self.update_rate_state = True
             self.threshold.setEnabled(False)
             self.vamp.setEnabled(False)
             self.step.setEnabled(False)
@@ -114,10 +111,11 @@ class ScanAmplitude(TabCategory):
             self.DO_channel_combo.setEnabled(False)
             self.lock_button.setEnabled(True)
             self.scan_button.setText('STOP')
+            self.data_connector.resume()
+            self.plot_running = True
+            self.update_rate_state = True
             self.sleep(0.02)
         else:
-            self.data_connector.pause()
-            self.plot_running = False
             self.threshold.setEnabled(True)
             self.vamp.setEnabled(True)
             self.step.setEnabled(True)
@@ -130,17 +128,19 @@ class ScanAmplitude(TabCategory):
             self.lock_button.setText('LOCK')
             self.lock_button.setChecked(False)
             self.scan_button.setText('SCAN')
+            self.data_connector.pause()
+            self.plot_running = False
             
     
     def slotLockButtonToggled(self, checked: bool) -> None:
         if checked:
+            self.lock_button.setText('UNLOCK')
             self.data_connector.pause()
             self.plot_running = False
-            self.lock_button.setText('UNLOCK')
         else:
+            self.lock_button.setText('LOCK')
             self.data_connector.resume()
             self.plot_running = True
-            self.lock_button.setText('LOCK')
             
     
     def plotGenerator(self, *data_connectors: tuple) -> None:

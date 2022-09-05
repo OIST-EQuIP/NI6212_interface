@@ -33,17 +33,17 @@ class AnalogOutput(TabCategory):
         
     def slotButtonToggled(self, checked: bool) -> None:
         if checked:
-            self.data_connector.resume()
-            self.plot_running = True
             self.textbox.setEnabled(False)
             self.channel_combo.setEnabled(False)
             self.button.setText('STOP')
+            self.data_connector.resume()
+            self.plot_running = True
         else:
-            self.data_connector.pause()
-            self.plot_running = False
             self.textbox.setEnabled(True)
             self.channel_combo.setEnabled(True)
             self.button.setText('EXECUTE')
+            self.data_connector.pause()
+            self.plot_running = False
     
     
     def plotGenerator(self, *data_connectors: tuple) -> None:

@@ -34,28 +34,28 @@ class DigitalOutput(TabCategory):
         
     def slotStateButtonToggled(self, checked: bool) -> None:
         if checked:
-            self.DO_state = True
             self.state_button.setText('OFF')
+            self.DO_state = True
         else:
-            self.DO_state = False
             self.state_button.setText('ON')
+            self.DO_state = False
             
     
     def slotExecuteButtonToggled(self, checked: bool) -> None:
         if checked:
-            self.data_connector.resume()
-            self.plot_running = True
             self.port_combo.setEnabled(False)
             for i in range(len(self.checkboxs)):
                 self.checkboxs[i].setEnabled(False)
             self.execute_button.setText('STOP')
+            self.data_connector.resume()
+            self.plot_running = True
         else:
-            self.data_connector.pause()
-            self.plot_running = False
             self.port_combo.setEnabled(True)
             for i in range(len(self.checkboxs)):
                 self.checkboxs[i].setEnabled(True)
             self.execute_button.setText('EXECUTE')
+            self.data_connector.pause()
+            self.plot_running = False
                     
 
     def plotGenerator(self,*data_connectors: tuple) -> None:
