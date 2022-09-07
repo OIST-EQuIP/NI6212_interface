@@ -1,6 +1,8 @@
 import sys
 import os
+
 from PyQt5.QtWidgets import QMainWindow, QApplication
+
 from TableWidget import TableWidget
 
 class App(QMainWindow):

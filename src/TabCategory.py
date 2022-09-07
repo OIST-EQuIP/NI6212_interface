@@ -1,5 +1,4 @@
-from cgitb import text
-from PyQt5.QtWidgets import QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QCheckBox, QHBoxLayout
+from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QLineEdit, QComboBox, QLabel, QCheckBox, QHBoxLayout
 from PyQt5 import QtCore,QtGui
 
 import pyqtgraph as pg
