@@ -198,8 +198,8 @@ class ScanAmplitude(TabCategory):
                     DO_port = 'port' + self.DO_port_combo.currentText()[-1]
                     DO_channel = 'line' + self.DO_channel_combo.currentText()[-1]
                     
-                    # AI_value = round(self.ni.getAIData(AI_channel)[0],len(str(step).split('.')[1]))
-                    AI_value = self.ni.getAIData(AI_channel)[0]
+                    AI_value = round(self.ni.getAIData(AI_channel)[0],len(str(step).split('.')[1]))
+                    # AI_value = self.ni.getAIData(AI_channel)[0]
                     
                     data_connector.cb_append_data_point(AI_value,x)
                     
@@ -209,11 +209,11 @@ class ScanAmplitude(TabCategory):
                         AO_value = threshold
                         self.detection(DO_port,DO_channel,dt)
                     else:
-                        # AO_value = round(self.AOUpdateRate(vmax,vmin,vamp,step,AI_value),len(str(step).split('.')[1]))
-                        AO_value = self.AOUpdateRate(vmax,vmin,vamp,step,AI_value)
+                        AO_value = round(self.AOUpdateRate(vmax,vmin,vamp,step,AI_value),len(str(step).split('.')[1]))
+                        # AO_value = self.AOUpdateRate(vmax,vmin,vamp,step,AI_value)
                     
                     self.ni.setAOData(AO_channel,AO_value)
-                    print(0.01, AI_value, self.ni.getAIData(AI_channel)[0], AO_value)
+                    print(f'tol: {tol}, AI: {AI_value}, AO: {AO_value}')
                     x += 1
                 
             self.sleep(0.02)
