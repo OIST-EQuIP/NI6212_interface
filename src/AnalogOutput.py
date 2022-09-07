@@ -1,20 +1,36 @@
 from PyQt5.QtWidgets import QLabel
 
 from TabCategory import TabCategory
-from NIDaqmxController import NIDaqmxController
+from NIDAQmxController import NIDAQmxController
 
 class AnalogOutput(TabCategory):
-    def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
+    """
+    Class that holds information on analog output tabs.
+
+    Args:
+        TabCategory (_type_): Parent class.
+    """
+    def __init__(self, name: str, ni: NIDAQmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
+        """
+        Constructor.
+
+        Args:
+            name (str): Plot Title.
+            ni (NIDAQmxController): NI-DAQmx Controller Class.
+            state (QLabel): Label to indicate whether the mouse cursor is in the plot area.
+            x (QLabel): Label to display x-coordinates of the plot area selected by the mouse cursor.
+            y (QLabel): Label to display y-coordinates of the plot area selected by the mouse cursor.
+        """
         super().__init__(name,ni,state,x,y)
-        ## TextBox
+        # TextBox
         self.textbox = self.createTextBox("[0-9-.]+")
         self.textbox.setText('0.0')
-        ## Label
+        # Label
         self.message = self.createLabel('')
-        ## Combo
+        # Combo box
         items = ['AO 0','AO 1']
         self.channel_combo = self.createCombo(items)
-        ## Button
+        # Button
         self.button = self.createButton('EXECUTE',True)
         self.button.toggled.connect(self.slotButtonToggled)
         # Box layout
@@ -32,6 +48,14 @@ class AnalogOutput(TabCategory):
         
         
     def slotButtonToggled(self, checked: bool) -> None:
+        """
+        A function that defines the behavior of a button.
+        When the button is pressed, the text box and combo are disabled and the plotting begins.
+        When the button is released, it stops the plot and activates the text box and combo.
+
+        Args:
+            checked (bool): Button press status.
+        """
         if checked:
             self.textbox.setEnabled(False)
             self.channel_combo.setEnabled(False)
@@ -47,6 +71,13 @@ class AnalogOutput(TabCategory):
     
     
     def plotGenerator(self, *data_connectors: tuple) -> None:
+        """
+        A function with a defined plotting behavior.
+        The value specified by the analog output is plotted.
+        
+        Args:
+            data_connectors (tuple): Arguments for manipulating the plot area.
+        """
         x = 0
         while True:
             value = self.textbox.text()

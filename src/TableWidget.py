@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QHBoxLayout
 from threading import Thread
 
-from NIDaqmxController import NIDaqmxController
+from NIDAQmxController import NIDAQmxController
 
 from AnalogInput import AnalogInput
 from AnalogOutput import AnalogOutput
@@ -9,9 +9,21 @@ from DigitalOutput import DigitalOutput
 from ScanAmplitude import ScanAmplitude
 
 class TableWidget(QWidget):
+    """
+    Widget Display Class.
+
+    Args:
+        QWidget (_type_): PyQt widget classes.
+    """
     def __init__(self, parent) -> None:
+        """
+        Constructor.
+
+        Args:
+            parent (_type_): Parent class.
+        """
         super(QWidget,self).__init__(parent)
-        self.ni = NIDaqmxController()
+        self.ni = NIDAQmxController()
         self.layout = QVBoxLayout(self)
         
         self.ch_status_value = QLabel("Crosshair: Outside plot")
@@ -82,12 +94,31 @@ class TableWidget(QWidget):
     
     
     def createButton(self, label: str, toggled: bool) -> QPushButton:
+        """
+        Create a button.
+
+        Args:
+            label (str): String to be displayed on the button.
+            toggled (bool): Variable specifying the toggled mode.
+
+        Returns:
+            QPushButton: Button.
+        """
         button = QPushButton(label)
         button.setCheckable(toggled)
         return button
     
     
     def slotEditButtonToggled(self, checked: bool) -> None:
+        """
+        A function that defines the behavior of a edit button.
+        When the button is pressed, it activates the text box and allows the user to edit the device name.
+        When the button is released, it saves the edited information and deactivates the text box.
+
+        Args:
+            checked (bool): Button press status.
+            
+        """
         if checked:
             self.editButton.setText("Set")
             self.dev_name.setEnabled(True)
@@ -98,6 +129,10 @@ class TableWidget(QWidget):
             
     
     def initButtonClicked(self) -> None:
+        """
+        A function that defines the behavior of a init button.
+        When the button is pressed, all ports are reset.
+        """
         self.scanAmplitude.detection_state = False
         ao_channel = ['ao0','ao1']
         do_port = ['port0','port1','port2']

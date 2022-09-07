@@ -13,12 +13,25 @@ import numpy as np
 
 from time import sleep
 
-from NIDaqmxController import NIDaqmxController
+from NIDAQmxController import NIDAQmxController
 
 from typing import Tuple
 
 class TabCategory:
-    def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel):
+    """
+    Class that holds tab information.
+    """
+    def __init__(self, name: str, ni: NIDAQmxController, state: QLabel, x: QLabel, y: QLabel):
+        """
+        Constructor.
+
+        Args:
+            name (str): Plot Title.
+            ni (NIDAQmxController): NI-DAQmx Controller Class.
+            state (QLabel): Label to indicate whether the mouse cursor is in the plot area.
+            x (QLabel): Label to display x-coordinates of the plot area selected by the mouse cursor.
+            y (QLabel): Label to display y-coordinates of the plot area selected by the mouse cursor.
+        """
         self.tab = QVBoxLayout()
         self.hbox_main = QHBoxLayout()
         self.hbox_main.addStretch(1)
@@ -52,10 +65,25 @@ class TabCategory:
     
     
     def getLayout(self) -> QVBoxLayout:
+        """
+        Get the tab layout.
+
+        Returns:
+            QVBoxLayout: Layout Information.
+        """
         return self.tab
 
     
     def createCombo(self, items: list) -> QComboBox:
+        """
+        Create a combo box.
+
+        Args:
+            items (list): Items to be used when creating combo box.
+
+        Returns:
+            QComboBox: Combo box.
+        """
         combo = QComboBox()
         for item in items:
             combo.addItem(item)
@@ -64,12 +92,32 @@ class TabCategory:
     
     
     def createButton(self, label: str, toggled: bool) -> QPushButton:
+        """
+        Create a button.
+
+        Args:
+            label (str): String to be displayed on the button.
+            toggled (bool): Variable specifying the toggled mode.
+
+        Returns:
+            QPushButton: Button.
+        """
         button = QPushButton(label)
         button.setCheckable(toggled)
         return button
     
     
     def createTextBox(self, limit: str, width: int = 100) -> QLineEdit:
+        """
+        Create a text box
+
+        Args:
+            limit (str): Input Limit Information.
+            width (int, optional): Text box width. Defaults to 100.
+
+        Returns:
+            QLineEdit: Text box.
+        """
         textbox = QLineEdit()
         lim = QtCore.QRegExp(limit)
         textbox.setValidator(QtGui.QRegExpValidator(lim))
@@ -78,16 +126,41 @@ class TabCategory:
     
     
     def createLabel(self, value: str) -> QLabel:
+        """
+        Create a label.
+
+        Args:
+            value (str): String to be displayed on the label.
+
+        Returns:
+            QLabel: Label.
+        """
         label = QLabel(value)
         return label
     
     
     def createCheckbox(self) -> QCheckBox:
+        """
+        Create a checkbox.
+
+        Returns:
+            QCheckBox: Checkbox.
+        """
         checkbox = QCheckBox()
         return checkbox
     
     
     def createCheckboxLayout(self, r: int) -> Tuple[list, QHBoxLayout]:
+        """
+        Create as many checkboxes as specified in the argument.
+
+        Args:
+            r (int): Designated quantity.
+
+        Returns:
+            Tuple[list, QHBoxLayout]: Checkboxes Information.
+                                      Returns multiple checkboxes and layout information.
+        """
         checkboxs = list()
         labels = list()
         vboxs = list()
@@ -107,16 +180,28 @@ class TabCategory:
             
     
     def crosshair_moved(self, crosshair_pos: QtCore.QPointF) -> None:
+        """
+        Display the mouse cursor position in the plot area as a numerical value.
+        
+        Args:
+            crosshair_pos (QtCore.QPointF): Mouse cursor position.
+        """
         self.ch_x_value.setText(f"X: {crosshair_pos.x()}")
         self.ch_y_value.setText(f"Y: {crosshair_pos.y()}")
 
 
     def crosshair_out(self) -> None:
+        """
+        Indicate that the mouse cursor is outside the plot area.
+        """
         self.ch_status_value.setText("Crosshair: Outside plot")
         self.ch_x_value.setText(f"X: Unavailable")
         self.ch_y_value.setText(f"Y: Unavailable")
 
 
     def crosshair_in(self) -> None:
+        """
+        Indicates that the mouse cursor is in the plot area.
+        """
         self.ch_status_value.setText("Crosshair: Inside plot")
         

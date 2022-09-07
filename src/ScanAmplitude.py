@@ -1,12 +1,28 @@
 from PyQt5.QtWidgets import QLabel,QHBoxLayout
 
 from TabCategory import TabCategory
-from NIDaqmxController import NIDaqmxController
+from NIDAQmxController import NIDAQmxController
 
 import math
 
 class ScanAmplitude(TabCategory):
-    def __init__(self, name: str, ni: NIDaqmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
+    """
+    Class that holds information on scan amplitude tabs.
+
+    Args:
+        TabCategory (_type_): Parent class.
+    """
+    def __init__(self, name: str, ni: NIDAQmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
+        """
+        Constructor.
+
+        Args:
+            name (str): Plot Title.
+            ni (NIDAQmxController): NI-DAQmx Controller Class.
+            state (QLabel): Label to indicate whether the mouse cursor is in the plot area.
+            x (QLabel): Label to display x-coordinates of the plot area selected by the mouse cursor.
+            y (QLabel): Label to display y-coordinates of the plot area selected by the mouse cursor.
+        """
         super().__init__(name,ni,state,x,y)
         self.update_rate_state = True
         self.detection_state = False
@@ -32,7 +48,7 @@ class ScanAmplitude(TabCategory):
         self.lock_button = self.createButton('LOCK',True)
         self.lock_button.toggled.connect(self.slotLockButtonToggled)
         self.lock_button.setEnabled(False)
-        # Combo
+        # Combo box
         items = ['AO 0','AO 1']
         self.AO_channel_combo = self.createCombo(items)
         items = ['AI 0','AI 1','AI 2','AI 3','AI 4','AI 5','AI 6','AI 7']
@@ -100,6 +116,14 @@ class ScanAmplitude(TabCategory):
         
     
     def slotScanButtonToggled(self, checked: bool) -> None:
+        """
+        A function that defines the behavior of a scan button.
+        When the button is pressed, the combo boxes and text boxes are disabled and the plotting begins.
+        When the button is released, it stops the plot and activates the combo boxes and text boxes.
+
+        Args:
+            checked (bool): Button press status.
+        """
         if checked:
             self.threshold.setEnabled(False)
             self.vamp.setEnabled(False)
@@ -133,6 +157,14 @@ class ScanAmplitude(TabCategory):
             
     
     def slotLockButtonToggled(self, checked: bool) -> None:
+        """
+        A function that defines the behavior of a lock button.
+        When the button is pressed, the plotting stops.
+        When the button is released, the plotting begins.
+
+        Args:
+            checked (bool): Button press status.
+        """
         if checked:
             self.lock_button.setText('UNLOCK')
             self.data_connector.pause()
@@ -144,6 +176,13 @@ class ScanAmplitude(TabCategory):
             
     
     def plotGenerator(self, *data_connectors: tuple) -> None:
+        """
+        A function with a defined plotting behavior.
+        Plot the current analog input values.
+        
+        Args:
+            data_connectors (tuple): Arguments for manipulating the plot area.
+        """
         x = 0
         while True:
             for data_connector in data_connectors:
@@ -181,6 +220,20 @@ class ScanAmplitude(TabCategory):
     
     
     def AOUpdateRate(self, vmax: float, vmin: float, vamp: float, step: float, now: float) -> float:        
+        """
+        This class is used to calculate analog output values.
+        Increase or decrease the analog output value according to the step size.
+
+        Args:
+            vmax (float): Maximum output value.
+            vmin (float): Minimum output value.
+            vamp (float): Specified output value limit.
+            step (float): Step size.
+            now (float): Current analog output value.
+
+        Returns:
+            float: Calculated analog output value.
+        """
         if vamp > vmax or vamp < vmin:
             mVamp = max(vmax,-(vmin))
         else:
@@ -207,6 +260,15 @@ class ScanAmplitude(TabCategory):
     
      
     def detection(self,do_port: str, do_channel: str, dt: float) -> None:
+        """
+        A function that defines the action to be taken when the analog input value reaches a threshold value.
+        Outputs a digital signal after ms specified by the argument dt.
+
+        Args:
+            do_port (str): Digital output port information.
+            do_channel (str): Digital output channel information.
+            dt (float): Designated waiting time.
+        """
         if not self.detection_state:
             self.sleep(dt/1000)
             self.detection_state = True

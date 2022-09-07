@@ -1,20 +1,47 @@
 import nidaqmx
 from nidaqmx.constants import (LineGrouping)
 
-class NIDaqmxController:
+class NIDAQmxController:
+    """
+    Class for operating NI-DAQmx USB-6212(BUS).
+    """
     def __init__(self):
+        """
+        Constructor.
+        """
         self.dev = None
 
 
     def setDevName(self,dev_name: str) -> None:
+        """
+        Specify device name.
+
+        Args:
+            dev_name (str): Device name.
+        """
         self.dev = dev_name
     
     
     def getDevName(self) -> str:
+        """
+        Get device name.
+
+        Returns:
+            str: Device name.
+        """
         return self.dev
     
     
     def getAIData(self,port: str) -> list:
+        """
+        Obtain analog input values.
+
+        Args:
+            port (str): Port Information.
+
+        Returns:
+            list: Analog input values.
+        """
         try:
             with nidaqmx.Task() as task:
                 task.ai_channels.add_ai_voltage_chan(self.dev + "/" + port)
@@ -24,6 +51,13 @@ class NIDaqmxController:
 
         
     def setAOData(self,port: str,data: float) -> None:
+        """
+        Specify analog output value.
+
+        Args:
+            port (str): Port Information.
+            data (float): Analog output value.
+        """
         try:
             with nidaqmx.Task() as task:
                 task.ao_channels.add_ao_voltage_chan(self.dev + "/" + port)
@@ -33,6 +67,16 @@ class NIDaqmxController:
         
     
     def getDOData(self,port: str,lineCh: list) -> bool:
+        """
+        Obtain digital input values.
+
+        Args:
+            port (str): Port Information.
+            lineCh (list): Channel Information.
+
+        Returns:
+            bool: Digital input values.
+        """
         try:
             with nidaqmx.Task() as task:
                 for i in lineCh:
@@ -43,6 +87,14 @@ class NIDaqmxController:
     
     
     def setDOData(self,port: str,lineCh: list,data: bool) -> None:
+        """
+        Specify digital output value.
+
+        Args:
+            port (str): Port Information.
+            lineCh (list): Channel Information.
+            data (bool): Digital output value.
+        """
         try:
             with nidaqmx.Task() as task:
                 for i in lineCh:
