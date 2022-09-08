@@ -137,7 +137,7 @@ class ScanAmplitude(TabCategory):
             self.scan_button.setText('STOP')
             self.data_connector.resume()
             self.plot_running = True
-            self.update_rate_state = True
+            self.detection_state = False
             self.sleep(0.02)
         else:
             self.threshold.setEnabled(True)
@@ -198,32 +198,17 @@ class ScanAmplitude(TabCategory):
                     DO_port = 'port' + self.DO_port_combo.currentText()[-1]
                     DO_channel = 'line' + self.DO_channel_combo.currentText()[-1]
                     
-                    # AI_value = round(self.ni.getAIData(AI_channel)[0],len(str(step).split('.')[1]))
-                    
-                    # data_connector.cb_append_data_point(AI_value,x)
-                    
-                    # tol = round(0.1**(len(str(step).split('.')[1])),len(str(step).split('.')[1]))
-                    
-                    # if math.isclose(threshold,AI_value,abs_tol=tol):
-                    #     AO_value = threshold
-                    #     self.detection(DO_port,DO_channel,dt)
-                    # else:
-                    #     AO_value = round(self.AOUpdateRate(vmax,vmin,vamp,step,AI_value),len(str(step).split('.')[1]))
-                    
-                    # print(f'tol: {tol}, AI: {AI_value}, AO: {AO_value}')
-                    
                     AI_value = self.ni.getAIData(AI_channel)[0]
                     
                     data_connector.cb_append_data_point(AI_value,x)
                     
                     if threshold >= 0 and AI_value >= threshold or threshold < 0 and AI_value <= threshold:
-                        # AO_value = threshold
                         self.detection(DO_port,DO_channel,dt)
                     elif threshold >= 0 and AI_value < threshold or threshold < 0 and AI_value > threshold:
                         AO_value = self.AOUpdateRate(vmax,vmin,vamp,step,AI_value)
+                        self.ni.setDOData(DO_port,[DO_channel],False)
                     
                     self.ni.setAOData(AO_channel,AO_value)
-                    self.ni.setAOData('ao1',AO_value)
                     
                     print(f'AI: {AI_value}, AO: {AO_value}')
                     
