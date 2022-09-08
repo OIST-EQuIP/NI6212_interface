@@ -102,3 +102,17 @@ class NIDAQmxController:
                 task.write([data] * len(lineCh))
         except nidaqmx.errors.DaqError:
             pass
+
+    
+    def init(self) -> None:
+        """
+        Reset all ports and channels.
+        """
+        ao_channel = ['ao0','ao1']
+        do_port = ['port0','port1','port2']
+        do_channel = ['line0','line1','line2','line3','line4','line5','line6','line7']
+        
+        for i in ao_channel:
+            self.setAOData(i,0.0)
+        for i in do_port:
+            self.setDOData(i,do_channel,False)

@@ -87,6 +87,8 @@ class TableWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.layout.addLayout(self.hbox)
         
+        self.ni.init()
+        
         Thread(target=self.analogInput.plotGenerator, args=(self.analogInput.data_connector,)).start()
         Thread(target=self.analogOutput.plotGenerator, args=(self.analogOutput.data_connector,)).start()
         Thread(target=self.digitalOutput.plotGenerator, args=(self.digitalOutput.data_connector,)).start()
@@ -134,11 +136,5 @@ class TableWidget(QWidget):
         When the button is pressed, all ports are reset.
         """
         self.scanAmplitude.detection_state = False
-        ao_channel = ['ao0','ao1']
-        do_port = ['port0','port1','port2']
-        do_channel = ['line0','line1','line2','line3','line4','line5','line6','line7']
-        for i in ao_channel:
-            self.ni.setAOData(i,0.0)
-        for i in do_port:
-            self.ni.setDOData(i,do_channel,False)
+        self.ni.init()
         
