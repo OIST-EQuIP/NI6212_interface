@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLabel
 
 from TabCategory import TabCategory
-from NIDAQmxController import NIDAQmxController
+from NIDAQmxController import NIDAQ_do_task
 
 class DigitalOutput(TabCategory):
     """
@@ -10,25 +10,27 @@ class DigitalOutput(TabCategory):
     Args:
         TabCategory (_type_): Parent class.
     """
-    def __init__(self, name: str, ni: NIDAQmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
+    def __init__(self, name: str, state: QLabel, x: QLabel, y: QLabel) -> None:
         """
         Constructor.
 
         Args:
             name (str): Plot Title.
-            ni (NIDAQmxController): NI-DAQmx Controller Class.
             state (QLabel): Label to indicate whether the mouse cursor is in the plot area.
             x (QLabel): Label to display x-coordinates of the plot area selected by the mouse cursor.
             y (QLabel): Label to display y-coordinates of the plot area selected by the mouse cursor.
         """
-        super().__init__(name,ni,state,x,y)
+        super().__init__(name,state,x,y)
         self.DO_state = False
         # Combo box
-        items = ['Port 0','Port 1','Port 2']
-        self.port_combo = self.createCombo(items)
+        port = ['port0','port1','port2']
+        self.port_combo = self.createCombo(port)
         self.port_combo.setCurrentIndex(1)
+        self.current_port = self.port_combo.currentIndex()
         # Checkbox
-        self.checkboxes,checkboxes_layout = self.createCheckboxLayout(8)
+        line = ['line0', 'line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7']
+        self.line_combo = self.createCombo(line)
+        self.current_line = self.line_combo.currentIndex()
         # Button
         self.state_button = self.createButton('ON',True)
         self.state_button.toggled.connect(self.slotStateButtonToggled)
@@ -38,7 +40,7 @@ class DigitalOutput(TabCategory):
         # Box layout
         ## HBox
         self.hbox_main.addWidget(self.port_combo)
-        self.hbox_main.addLayout(checkboxes_layout)
+        self.hbox_main.addWidget(self.line_combo)
         self.hbox_main.addWidget(self.state_button)
         self.hbox_main.addWidget(self.execute_button)
         ## VBox
@@ -47,6 +49,8 @@ class DigitalOutput(TabCategory):
         
         self.tab.addLayout(self.vbox_main)
         
+        self.do_task = NIDAQ_do_task('Dev1',self.port_combo.currentText(),self.line_combo.currentText())
+    
         
     def slotStateButtonToggled(self, checked: bool) -> None:
         """
@@ -75,16 +79,23 @@ class DigitalOutput(TabCategory):
             checked (bool): Button press status.
         """
         if checked:
+            if self.current_port != self.port_combo.currentIndex() or self.current_line != self.line_combo.currentIndex():
+                self.do_task.close()
+                self.do_task = NIDAQ_do_task('Dev1',self.port_combo.currentText(),self.line_combo.currentText())
+                self.current_port = self.port_combo.currentIndex()
+                self.current_line = self.line_combo.currentIndex()
+            self.do_task.start()
+            
             self.port_combo.setEnabled(False)
-            for i in range(len(self.checkboxes)):
-                self.checkboxes[i].setEnabled(False)
+            self.line_combo.setEnabled(False)
             self.execute_button.setText('STOP')
             self.data_connector.resume()
             self.plot_running = True
         else:
+            self.do_task.stop()
+            
             self.port_combo.setEnabled(True)
-            for i in range(len(self.checkboxes)):
-                self.checkboxes[i].setEnabled(True)
+            self.line_combo.setEnabled(True)
             self.execute_button.setText('EXECUTE')
             self.data_connector.pause()
             self.plot_running = False
@@ -99,23 +110,12 @@ class DigitalOutput(TabCategory):
             data_connectors (tuple): Arguments for manipulating the plot area.
         """
         x = 0
-        while True: 
-            for data_connector in data_connectors:
-                if self.plot_running == True: 
-                    port = 'port' + self.port_combo.currentText()[-1]
-                    select = list()
-                    status = self.DO_state
-                    channels = list()
-                    for i in range(len(self.checkboxes)):
-                        if self.checkboxes[i].checkState() == self.checked:
-                            select.append(i)
-
-                    for i in select:
-                        channels.append(f'line{i}')
-                    self.ni.setDOData(port,channels,status)
+        while True:
+            if self.plot_running:
+                self.do_task.setDOData(self.DO_state)
+                for data_connector in data_connectors:
                     data_connector.cb_append_data_point(self.DO_state,x)
                     x += 1
-                    
-            self.sleep(0.02)
+            self.sleep(0.01)
             
         

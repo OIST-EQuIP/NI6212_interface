@@ -12,21 +12,18 @@ import numpy as np
 
 from time import sleep
 
-from NIDAQmxController import NIDAQmxController
-
 from typing import Tuple
 
 class TabCategory:
     """
     Class that holds tab information.
     """
-    def __init__(self, name: str, ni: NIDAQmxController, state: QLabel, x: QLabel, y: QLabel):
+    def __init__(self, name: str, state: QLabel, x: QLabel, y: QLabel):
         """
         Constructor.
 
         Args:
             name (str): Plot Title.
-            ni (NIDAQmxController): NI-DAQmx Controller Class.
             state (QLabel): Label to indicate whether the mouse cursor is in the plot area.
             x (QLabel): Label to display x-coordinates of the plot area selected by the mouse cursor.
             y (QLabel): Label to display y-coordinates of the plot area selected by the mouse cursor.
@@ -44,8 +41,7 @@ class TabCategory:
         self.crosshair_moved_message = []
         self.crosshair_out_message = []
         self.crosshair_in_message = []
-        
-        self.ni = ni
+
         self.ch_status_value = state
         self.ch_x_value = x
         self.ch_y_value = y
@@ -176,8 +172,8 @@ class TabCategory:
             checkbox_layout.addLayout(i) 
             
         return checkboxs,checkbox_layout   
-            
     
+            
     def crosshair_moved(self, crosshair_pos: QtCore.QPointF) -> None:
         """
         Display the mouse cursor position in the plot area as a numerical value.

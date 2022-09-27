@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLabel
 
 from TabCategory import TabCategory
-from NIDAQmxController import NIDAQmxController
+from NIDAQmxController import NIDAQ_ai_task
 
 class AnalogInput(TabCategory):
     """
@@ -10,21 +10,21 @@ class AnalogInput(TabCategory):
     Args:
         TabCategory (_type_): Parent class.
     """
-    def __init__(self, name: str, ni: NIDAQmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
+    def __init__(self, name: str, state: QLabel, x: QLabel, y: QLabel) -> None:
         """
         Constructor.
 
         Args:
             name (str): Plot Title.
-            ni (NIDAQmxController): NI-DAQmx Controller Class.
             state (QLabel): Label to indicate whether the mouse cursor is in the plot area.
             x (QLabel): Label to display x-coordinates of the plot area selected by the mouse cursor.
             y (QLabel): Label to display y-coordinates of the plot area selected by the mouse cursor.
         """
-        super().__init__(name,ni,state,x,y)
+        super().__init__(name,state,x,y)
         # Combo box
-        items = ['AI 0','AI 1','AI 2','AI 3','AI 4','AI 5','AI 6','AI 7']
-        self.channel_combo = super().createCombo(items)
+        ai_chan = ['ai0','ai1','ai2','ai3','ai4','ai5','ai6','ai7']
+        self.channel_combo = super().createCombo(ai_chan)
+        self.current_channel = self.channel_combo.currentIndex()
         # Button
         self.AI_button = self.createButton('EXECUTE',True)
         self.AI_button.toggled.connect(self.slotButtonToggled)
@@ -39,6 +39,8 @@ class AnalogInput(TabCategory):
         
         self.tab.addLayout(self.vbox_main)
         
+        self.ai_task = NIDAQ_ai_task('Dev1',self.channel_combo.currentText())
+
     
     def slotButtonToggled(self, checked: bool) -> None:
         """
@@ -50,11 +52,19 @@ class AnalogInput(TabCategory):
             checked (bool): Button press status.
         """
         if checked:
+            if self.current_channel != self.channel_combo.currentIndex():
+                self.ai_task.close()
+                self.ai_task = NIDAQ_ai_task('Dev1',self.channel_combo.currentText())
+                self.current_channel = self.channel_combo.currentIndex()
+            self.ai_task.start()
+            
             self.channel_combo.setEnabled(False)
             self.AI_button.setText('STOP')
             self.data_connector.resume()
             self.plot_running = True
         else:
+            self.ai_task.stop()
+            
             self.channel_combo.setEnabled(True)
             self.AI_button.setText('EXECUTE')
             self.data_connector.pause()
@@ -71,11 +81,9 @@ class AnalogInput(TabCategory):
         """
         x = 0
         while True:
-            for data_connector in data_connectors:
-                if self.plot_running == True:
-                    channel = 'ai' + self.channel_combo.currentText()[-1]
-                    value = self.ni.getAIData(channel)
-                    data_connector.cb_append_data_point(value[0],x)
+            if self.plot_running:
+                vi = self.ai_task.getAIData_single()[0]
+                for data_connector in data_connectors:
+                    data_connector.cb_append_data_point(vi,x)
                     x += 1
-                
-            self.sleep(0.02)
+            self.sleep(0.01)

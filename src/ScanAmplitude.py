@@ -1,9 +1,11 @@
 from PyQt5.QtWidgets import QLabel,QHBoxLayout
 
 from TabCategory import TabCategory
-from NIDAQmxController import NIDAQmxController
+from NIDAQmxController import NIDAQ_ai_task
+from NIDAQmxController import NIDAQ_ao_task
+from NIDAQmxController import NIDAQ_do_task
 
-import math
+import time
 
 class ScanAmplitude(TabCategory):
     """
@@ -12,20 +14,17 @@ class ScanAmplitude(TabCategory):
     Args:
         TabCategory (_type_): Parent class.
     """
-    def __init__(self, name: str, ni: NIDAQmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
+    def __init__(self, name: str, state: QLabel, x: QLabel, y: QLabel) -> None:
         """
         Constructor.
 
         Args:
             name (str): Plot Title.
-            ni (NIDAQmxController): NI-DAQmx Controller Class.
             state (QLabel): Label to indicate whether the mouse cursor is in the plot area.
             x (QLabel): Label to display x-coordinates of the plot area selected by the mouse cursor.
             y (QLabel): Label to display y-coordinates of the plot area selected by the mouse cursor.
         """
-        super().__init__(name,ni,state,x,y)
-        self.update_rate_state = True
-        self.detection_state = False
+        super().__init__(name,state,x,y)
         # Label
         self.system_message = self.createLabel('')
         # TextBox
@@ -49,15 +48,19 @@ class ScanAmplitude(TabCategory):
         self.lock_button.toggled.connect(self.slotLockButtonToggled)
         self.lock_button.setEnabled(False)
         # Combo box
-        items = ['AO 0','AO 1']
-        self.AO_channel_combo = self.createCombo(items)
-        items = ['AI 0','AI 1','AI 2','AI 3','AI 4','AI 5','AI 6','AI 7']
-        self.AI_channel_combo = self.createCombo(items)
-        items = ['Port 0','Port 1','Port 2']
-        self.DO_port_combo = self.createCombo(items)
+        ao_chan = ['ao0', 'ao1']
+        self.AO_channel_combo = self.createCombo(ao_chan)
+        self.ao_current_channel = self.AO_channel_combo.currentIndex()
+        ai_chan = ['ai0','ai1','ai2','ai3','ai4','ai5','ai6','ai7']
+        self.AI_channel_combo = self.createCombo(ai_chan)
+        self.ai_current_channel = self.AI_channel_combo.currentIndex()
+        port = ['port0', 'port1', 'port2']
+        self.DO_port_combo = self.createCombo(port)
         self.DO_port_combo.setCurrentIndex(1)
-        items = ['PFI 0','PFI 1','PFI 2','PFI 3','PFI 4','PFI 5','PFI 6','PFI 7']
-        self.DO_channel_combo = self.createCombo(items)
+        self.do_current_port = self.DO_port_combo.currentIndex()
+        line = ['line0', 'line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7']
+        self.DO_channel_combo = self.createCombo(line)
+        self.do_current_channel = self.DO_channel_combo.currentIndex()
         # Box layout
         hbox1 = QHBoxLayout()
         hbox1.addWidget(self.createLabel('Threshold'))
@@ -114,6 +117,10 @@ class ScanAmplitude(TabCategory):
         
         self.tab.addLayout(self.hbox_main)
         
+        self.ai_task = NIDAQ_ai_task('Dev1',self.AI_channel_combo.currentText())
+        self.ao_task = NIDAQ_ao_task('Dev1',self.AO_channel_combo.currentText())
+        self.do_task = NIDAQ_do_task('Dev1',self.DO_port_combo.currentText(),self.DO_channel_combo.currentText())
+        
     
     def slotScanButtonToggled(self, checked: bool) -> None:
         """
@@ -125,6 +132,27 @@ class ScanAmplitude(TabCategory):
             checked (bool): Button press status.
         """
         if checked:
+            if self.ai_current_channel != self.AI_channel_combo.currentIndex():
+                self.ai_task.close()
+                self.ai_task = NIDAQ_ai_task('Dev1',self.AI_channel_combo.currentText())
+                self.ai_current_channel = self.AI_channel_combo.currentIndex()
+            
+            if self.ao_current_channel != self.AO_channel_combo.currentIndex():
+                self.ao_task.close()
+                self.ao_task = NIDAQ_ao_task('Dev1',self.AO_channel_combo.currentText())
+                self.ao_current_channel = self.AO_channel_combo.currentIndex()
+                
+            if self.do_current_port != self.DO_port_combo.currentIndex() or self.do_current_channel != self.DO_channel_combo.currentIndex():
+                self.do_task.close()
+                self.do_task = NIDAQ_do_task('Dev1',self.DO_port_combo.currentText(),self.DO_channel_combo.currentText())
+                self.do_current_port = self.DO_port_combo.currentIndex()
+                self.do_current_channel = self.DO_channel_combo.currentIndex()
+                
+            self.ai_task.start()
+            self.ao_task.start()
+            self.do_task.start()
+            self.do_task.setDOData(False)
+            
             self.threshold.setEnabled(False)
             self.vamp.setEnabled(False)
             self.step.setEnabled(False)
@@ -137,9 +165,11 @@ class ScanAmplitude(TabCategory):
             self.scan_button.setText('STOP')
             self.data_connector.resume()
             self.plot_running = True
-            self.detection_state = False
-            self.sleep(0.02)
         else:
+            self.ai_task.stop()
+            self.ao_task.stop()
+            self.do_task.stop()
+            
             self.threshold.setEnabled(True)
             self.vamp.setEnabled(True)
             self.step.setEnabled(True)
@@ -166,13 +196,15 @@ class ScanAmplitude(TabCategory):
             checked (bool): Button press status.
         """
         if checked:
+            self.ai_task.stop()
+            self.ao_task.stop()
+            self.do_task.stop()
             self.lock_button.setText('UNLOCK')
-            self.data_connector.pause()
-            self.plot_running = False
         else:
+            self.ai_task.start()
+            self.ao_task.start()
+            self.do_task.start()
             self.lock_button.setText('LOCK')
-            self.data_connector.resume()
-            self.plot_running = True
             
     
     def plotGenerator(self, *data_connectors: tuple) -> None:
@@ -184,90 +216,57 @@ class ScanAmplitude(TabCategory):
             data_connectors (tuple): Arguments for manipulating the plot area.
         """
         x = 0
+        vo = 0
         while True:
-            for data_connector in data_connectors:
-                if self.plot_running == True:
-                    threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
-                    vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
-                    vmin = float(self.vmin.text()) if self.vmin.text() != '' and self.vmin.text() != '-' else 0.0
-                    vamp = float(self.vamp.text()) if self.vamp.text() != '' and self.vamp.text() != '-' else 0.0
-                    step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
-                    dt = float(self.dt.text()) if self.dt.text() != '' and self.dt.text() != '-' else 0.0
-                    AI_channel = 'ai' + self.AI_channel_combo.currentText()[-1]
-                    AO_channel = 'ao' + self.AO_channel_combo.currentText()[-1]
-                    DO_port = 'port' + self.DO_port_combo.currentText()[-1]
-                    DO_channel = 'line' + self.DO_channel_combo.currentText()[-1]
+            threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
+            vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
+            vmin = float(self.vmin.text()) if self.vmin.text() != '' and self.vmin.text() != '-' else 0.0
+            vamp = float(self.vamp.text()) if self.vamp.text() != '' and self.vamp.text() != '-' else 0.0
+            step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
+            dt = float(self.dt.text()) if self.dt.text() != '' and self.dt.text() != '-' else 0.0
+            slope = 1.0
+            
+            if self.plot_running:
+                vo += slope * step
+                self.ao_task.setAOData(vo)
+                vi = self.ai_task.getAIData_single()[0]
+                if vi > threshold:
+                    time.sleep(dt/1000)
+                    self.do_task.setDODatad(True)
+                    slope = 0
                     
-                    AI_value = self.ni.getAIData(AI_channel)[0]
+                if slope > 0 and vo > vmax:
+                    slope = -1.0
+                elif slope < 0 and vo < vmin:
+                    slope = 1.0
                     
-                    data_connector.cb_append_data_point(AI_value,x)
-                    
-                    if threshold >= 0 and AI_value >= threshold or threshold < 0 and AI_value <= threshold:
-                        self.detection(DO_port,DO_channel,dt)
-                    elif threshold >= 0 and AI_value < threshold or threshold < 0 and AI_value > threshold:
-                        AO_value = self.AOUpdateRate(vmax,vmin,vamp,step,AI_value)
-                        self.ni.setDOData(DO_port,[DO_channel],False)
-                    
-                    self.ni.setAOData(AO_channel,AO_value)
-                    
-                    print(f'AI: {AI_value}, AO: {AO_value}')
-                    
+                for data_connector in data_connectors:
+                    data_connector.cb_append_data_point(vi,x)
                     x += 1
+            self.sleep(0.1e-10)
                 
-            self.sleep(0.02)
-    
-    
-    def AOUpdateRate(self, vmax: float, vmin: float, vamp: float, step: float, now: float) -> float:        
-        """
-        This class is used to calculate analog output values.
-        Increase or decrease the analog output value according to the step size.
-
-        Args:
-            vmax (float): Maximum output value.
-            vmin (float): Minimum output value.
-            vamp (float): Specified output value limit.
-            step (float): Step size.
-            now (float): Current analog output value.
-
-        Returns:
-            float: Calculated analog output value.
-        """
-        if vamp > vmax or vamp < vmin:
-            mVamp = max(vmax,-(vmin))
-        else:
-            mVamp = vamp
         
-        if self.update_rate_state:
-            result = now + step
-            if step > 0 and result >= mVamp: 
-                self.update_rate_state = not self.update_rate_state
-                result = mVamp
-            if step < 0 and result <= -(mVamp): 
-                self.update_rate_state = not self.update_rate_state
-                result = -(mVamp)
-        else:
-            result = now - step
-            if step > 0 and result <= -(mVamp):
-                self.update_rate_state = not self.update_rate_state
-                result = -(mVamp)
-            if step < 0 and result >= mVamp:
-                self.update_rate_state = not self.update_rate_state
-                result = mVamp
-                
-        return result
-    
-     
-    def detection(self,do_port: str, do_channel: str, dt: float) -> None:
-        """
-        A function that defines the action to be taken when the analog input value reaches a threshold value.
-        Outputs a digital signal after ms specified by the argument dt.
+    # def scan(self):
+    #     threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
+    #     vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
+    #     vmin = float(self.vmin.text()) if self.vmin.text() != '' and self.vmin.text() != '-' else 0.0
+    #     vamp = float(self.vamp.text()) if self.vamp.text() != '' and self.vamp.text() != '-' else 0.0
+    #     step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
+    #     dt = float(self.dt.text()) if self.dt.text() != '' and self.dt.text() != '-' else 0.0
+    #     slope = 1.0
+    #     ao = 0
 
-        Args:
-            do_port (str): Digital output port information.
-            do_channel (str): Digital output channel information.
-            dt (float): Designated waiting time.
-        """
-        if not self.detection_state:
-            self.sleep(dt/1000)
-            self.detection_state = True
-            self.ni.setDOData(do_port,[do_channel],True)
+    #     vo += slope*step
+    #     self.ao_task.setAOData(vo)
+    #     vi = self.ai_task.getAIData_single()[0]
+    #     if vi > threshold:
+    #         time.sleep(dt/1000)
+    #         self.do_task.setDODatad(True)
+    #         slope = 0
+            
+    #     if slope > 0 and vo > vmax:
+    #         slope = -1.0
+    #     elif slope < 0 and vo < vmin:
+    #         slope = 1.0
+
+    #     return vi

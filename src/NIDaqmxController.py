@@ -1,118 +1,116 @@
 import nidaqmx
-from nidaqmx.constants import (LineGrouping)
+from nidaqmx.constants import LineGrouping
 
-class NIDAQmxController:
-    """
-    Class for operating NI-DAQmx USB-6212(BUS).
-    """
-    def __init__(self):
+class NIDAQ_task:
+    def __init__(self, dev_name : str):
         """
         Constructor.
+        
+        Create a task
         """
-        self.dev = None
-
-
-    def setDevName(self,dev_name: str) -> None:
-        """
-        Specify device name.
-
-        Args:
-            dev_name (str): Device name.
-        """
-        self.dev = dev_name
+        self.dev = self.getDeviceNames()[0]
+        # self.dev = dev_name
+        self.task = nidaqmx.Task()
     
+    def start(self):
+        self.task.start()
     
-    def getDevName(self) -> str:
-        """
-        Get device name.
+    def stop(self):
+        self.task.stop()
+    
+    def close(self):
+        self.task.close()
+        
+    def getDeviceNames(self) -> list:
+        sys = nidaqmx.system.System()
+        return sys.devices.device_names
 
-        Returns:
-            str: Device name.
-        """
-        return self.dev
-    
-    
-    def getAIData(self,port: str) -> list:
-        """
-        Obtain analog input values.
 
-        Args:
-            port (str): Port Information.
+class NIDAQ_ai_task(NIDAQ_task):
+    def __init__(self, dev_name : str, port : str):
+        """
+        Constructor.
+        
+        Create an AI task
+        """
+        super().__init__(dev_name)
+        # self.port = port
+        self.task.ai_channels.add_ai_voltage_chan(self.dev + "/" + port)
+    
+    # def addChan(self,port):
+    #     self.task.ai_channels.add_ai_voltage_chan(self.dev + "/" + port)
+    
+    def getAIData_single(self) -> list:
+        """
+        Obtain an analog input value.
 
         Returns:
             list: Analog input values.
         """
         try:
-            with nidaqmx.Task() as task:
-                task.ai_channels.add_ai_voltage_chan(self.dev + "/" + port)
-                return task.read(number_of_samples_per_channel=1)
-        except nidaqmx.errors.DaqError:
-            return [0]
-
+            return self.task.read(number_of_samples_per_channel=1)
+        except nidaqmx.errors.DaqReadError:
+            print('error')
+        # return self.task.read(number_of_samples_per_channel=1)
         
-    def setAOData(self,port: str,data: float) -> None:
+    def getAIData_multi(self, num) -> list:
         """
-        Specify analog output value.
-
-        Args:
-            port (str): Port Information.
-            data (float): Analog output value.
-        """
-        try:
-            with nidaqmx.Task() as task:
-                task.ao_channels.add_ao_voltage_chan(self.dev + "/" + port)
-                task.write([data], auto_start=True)    
-        except nidaqmx.errors.DaqError:
-            pass
-        
-    
-    def getDOData(self,port: str,lineCh: list) -> bool:
-        """
-        Obtain digital input values.
-
-        Args:
-            port (str): Port Information.
-            lineCh (list): Channel Information.
+        Obtain an analog input value.
 
         Returns:
-            bool: Digital input values.
+            list: Analog input values.
         """
         try:
-            with nidaqmx.Task() as task:
-                for i in lineCh:
-                    task.di_channels.add_di_chan(self.dev + "/" + port + "/" + i, line_grouping=LineGrouping.CHAN_PER_LINE)
-                return task.read()
-        except nidaqmx.errors.DaqError:
-            return False
-    
-    
-    def setDOData(self,port: str,lineCh: list,data: bool) -> None:
-        """
-        Specify digital output value.
-
-        Args:
-            port (str): Port Information.
-            lineCh (list): Channel Information.
-            data (bool): Digital output value.
-        """
-        try:
-            with nidaqmx.Task() as task:
-                for i in lineCh:
-                    task.do_channels.add_do_chan(self.dev + "/" + port + "/" + i, line_grouping=LineGrouping.CHAN_PER_LINE)
-                task.write([data] * len(lineCh))
-        except nidaqmx.errors.DaqError:
-            pass
-
-    
-    def init(self) -> None:
-        """
-        Reset all ports and channels.
-        """
-        ao_channel = ['ao0','ao1']
-        do_port = ['port0','port1','port2']
-        do_channel = ['line0','line1','line2','line3','line4','line5','line6','line7']
+            return self.task.read(number_of_samples_per_channel=num)
+        except nidaqmx.errors.DaqReadError:
+            return [False]
         
-        for i in ao_channel:
-            self.setAOData(i,0.0)
-        for i in do_port:
-            self.setDOData(i,do_channel,False)
+
+class NIDAQ_ao_task(NIDAQ_task):
+    def __init__(self, dev_name : str, port : str):
+        """
+        Constructor.
+        
+        Create an AO task
+        """
+        super().__init__(dev_name)
+        # self.port = port
+        self.task.ao_channels.add_ao_voltage_chan(self.dev + "/" + port)
+    
+    # def addChan(self):
+    #     self.task.ao_channels.add_ao_voltage_chan(self.dev + "/" + self.port)
+    
+    def setAOData(self, data : float) -> None:
+        """
+        Set an analog output value.
+
+        """
+        try:
+            return self.task.write(data, auto_start=False)
+        except nidaqmx.errors.DaqWriteError:
+            return False
+
+class NIDAQ_do_task(NIDAQ_task):
+    def __init__(self, dev_name : str, port : str, line : str):
+        """
+        Constructor.
+        
+        Create a DO task
+        """
+        super().__init__(dev_name)
+        # self.port = port
+        # self.line = line
+        self.task.do_channels.add_do_chan(self.dev + "/" + port + "/" + line, line_grouping=LineGrouping.CHAN_PER_LINE)
+    
+    # def addChan(self):
+    #     self.task.do_channels.add_do_chan(self.dev + "/" + self.port + "/" + self.line, line_grouping=LineGrouping.CHAN_PER_LINE)
+    
+    def setDOData(self, data : bool) -> None:
+        """
+        Set a digital output value.
+
+        """
+        try:
+            return self.task.write(data, auto_start=False)
+        except nidaqmx.errors.DaqWriteError:
+            return False

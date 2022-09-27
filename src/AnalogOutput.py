@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLabel
 
 from TabCategory import TabCategory
-from NIDAQmxController import NIDAQmxController
+from NIDAQmxController import NIDAQ_ao_task
 
 class AnalogOutput(TabCategory):
     """
@@ -10,26 +10,26 @@ class AnalogOutput(TabCategory):
     Args:
         TabCategory (_type_): Parent class.
     """
-    def __init__(self, name: str, ni: NIDAQmxController, state: QLabel, x: QLabel, y: QLabel) -> None:
+    def __init__(self, name: str, state: QLabel, x: QLabel, y: QLabel) -> None:
         """
         Constructor.
 
         Args:
             name (str): Plot Title.
-            ni (NIDAQmxController): NI-DAQmx Controller Class.
             state (QLabel): Label to indicate whether the mouse cursor is in the plot area.
             x (QLabel): Label to display x-coordinates of the plot area selected by the mouse cursor.
             y (QLabel): Label to display y-coordinates of the plot area selected by the mouse cursor.
         """
-        super().__init__(name,ni,state,x,y)
+        super().__init__(name,state,x,y)
         # TextBox
         self.textbox = self.createTextBox("[0-9-.]+")
         self.textbox.setText('0.0')
         # Label
         self.message = self.createLabel('')
         # Combo box
-        items = ['AO 0','AO 1']
-        self.channel_combo = self.createCombo(items)
+        ao_chan = ['ao0','ao1']
+        self.channel_combo = self.createCombo(ao_chan)
+        self.current_channel = self.channel_combo.currentIndex()
         # Button
         self.button = self.createButton('EXECUTE',True)
         self.button.toggled.connect(self.slotButtonToggled)
@@ -46,6 +46,8 @@ class AnalogOutput(TabCategory):
         
         self.tab.addLayout(self.vbox_main)
         
+        self.ao_task = NIDAQ_ao_task('Dev1',self.channel_combo.currentText())
+        
         
     def slotButtonToggled(self, checked: bool) -> None:
         """
@@ -57,12 +59,20 @@ class AnalogOutput(TabCategory):
             checked (bool): Button press status.
         """
         if checked:
+            if self.current_channel != self.channel_combo.currentIndex():
+                self.ao_task.close()
+                self.ao_task = NIDAQ_ao_task('Dev1',self.channel_combo.currentText())
+                self.current_channel = self.channel_combo.currentIndex()
+            self.ao_task.start()
+            
             self.textbox.setEnabled(False)
             self.channel_combo.setEnabled(False)
             self.button.setText('STOP')
             self.data_connector.resume()
             self.plot_running = True
         else:
+            self.ao_task.stop()
+            
             self.textbox.setEnabled(True)
             self.channel_combo.setEnabled(True)
             self.button.setText('EXECUTE')
@@ -80,26 +90,10 @@ class AnalogOutput(TabCategory):
         """
         x = 0
         while True:
-            value = self.textbox.text()
-            
-            if value == "" or value == "-" or value == ".":
-                self.message.setText('')
-                value = 0.0
-            elif float(value) > 10.0:
-                self.message.setText('WARNING! : Set the value between -10.0 and 10.0')
-                value = 10.0
-            elif float(value) < -10.0:
-                self.message.setText('WARNING! : Set the value between -10.0 and 10.0')
-                value = -10.0
-            else:
-                self.message.setText('')
-                value = float(value)
-                
-            for data_connector in data_connectors:
-                if self.plot_running == True: 
-                    channel = 'ao' + self.channel_combo.currentText()[-1]
-                    self.ni.setAOData(channel,value)
+            if self.plot_running:
+                value = float(self.textbox.text()) if self.textbox.text()[-1] != '' and self.textbox.text()[-1] != '-' and self.textbox.text()[0] != '.' else 0.0
+                self.ao_task.setAOData(value)
+                for data_connector in data_connectors:
                     data_connector.cb_append_data_point(value,x)
                     x += 1
-                
-            self.sleep(0.02)
+            self.sleep(0.01)
