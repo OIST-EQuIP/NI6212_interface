@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QPushButton, QWidget, QTabWidget, QVBoxLayout, QLineEdit, QComboBox, QLabel, QHBoxLayout
 from threading import Thread
+import asyncio
 
 from AnalogInput import AnalogInput
 from AnalogOutput import AnalogOutput
@@ -83,11 +84,12 @@ class TableWidget(QWidget):
         self.layout.addWidget(self.tabs)
         # self.layout.addLayout(self.hbox)
         
-        Thread(target=self.analogInput.plotGenerator, args=(self.analogInput.data_connector,)).start()
-        Thread(target=self.analogOutput.plotGenerator, args=(self.analogOutput.data_connector,)).start()
-        Thread(target=self.digitalOutput.plotGenerator, args=(self.digitalOutput.data_connector,)).start()
-        Thread(target=self.scanAmplitude.plotGenerator, args=(self.scanAmplitude.data_connector,)).start()
-    
+        # Thread(target=self.analogInput.plotGenerator, args=(self.analogInput.data_connector,)).start()
+        # Thread(target=self.analogOutput.plotGenerator, args=(self.analogOutput.data_connector,)).start()
+        # Thread(target=self.digitalOutput.plotGenerator, args=(self.digitalOutput.data_connector,)).start()
+        # Thread(target=self.scanAmplitude.plotGenerator, args=(self.scanAmplitude.data_connector,)).start()
+
+        
     
     # def createButton(self, label: str, toggled: bool) -> QPushButton:
     #     """

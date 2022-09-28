@@ -3,6 +3,10 @@ from PyQt5.QtWidgets import QLabel
 from TabCategory import TabCategory
 from NIDAQmxController import NIDAQ_do_task
 
+import concurrent.futures
+
+import queue
+
 class DigitalOutput(TabCategory):
     """
     Class that holds information on digital output tabs.
@@ -50,7 +54,11 @@ class DigitalOutput(TabCategory):
         self.tab.addLayout(self.vbox_main)
         
         self.do_task = NIDAQ_do_task('Dev1',self.port_combo.currentText(),self.line_combo.currentText())
-    
+        
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        executor.submit(self.calc)
+        executor.submit(self.plotGenerator,self.data_connector)
+        
         
     def slotStateButtonToggled(self, checked: bool) -> None:
         """
@@ -112,10 +120,15 @@ class DigitalOutput(TabCategory):
         x = 0
         while True:
             if self.plot_running:
-                self.do_task.setDOData(self.DO_state)
                 for data_connector in data_connectors:
                     data_connector.cb_append_data_point(self.DO_state,x)
                     x += 1
-            self.sleep(0.01)
+            self.sleep(0.1e-3)
             
+    
+    def calc(self):
+        while True:
+            if self.plot_running:
+                self.do_task.setDOData(self.DO_state)
+            self.sleep(0.1e-20)
         

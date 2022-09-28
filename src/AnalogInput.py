@@ -3,6 +3,10 @@ from PyQt5.QtWidgets import QLabel
 from TabCategory import TabCategory
 from NIDAQmxController import NIDAQ_ai_task
 
+import concurrent.futures
+
+import queue
+
 class AnalogInput(TabCategory):
     """
     Class that holds information on analog input tabs.
@@ -41,6 +45,12 @@ class AnalogInput(TabCategory):
         
         self.ai_task = NIDAQ_ai_task('Dev1',self.channel_combo.currentText())
 
+        self.msg_box = queue.Queue(maxsize=100)
+        
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        executor.submit(self.calc)
+        executor.submit(self.plotGenerator,self.data_connector)
+    
     
     def slotButtonToggled(self, checked: bool) -> None:
         """
@@ -64,13 +74,15 @@ class AnalogInput(TabCategory):
             self.plot_running = True
         else:
             self.ai_task.stop()
+            while not self.msg_box.empty():
+                self.msg_box.get()
             
             self.channel_combo.setEnabled(True)
             self.AI_button.setText('EXECUTE')
             self.data_connector.pause()
             self.plot_running = False
             
-            
+    
     def plotGenerator(self, *data_connectors: tuple) -> None:
         """
         A function with a defined plotting behavior.
@@ -82,8 +94,18 @@ class AnalogInput(TabCategory):
         x = 0
         while True:
             if self.plot_running:
-                vi = self.ai_task.getAIData_single()[0]
                 for data_connector in data_connectors:
-                    data_connector.cb_append_data_point(vi,x)
+                    data_connector.cb_append_data_point(self.msg_box.get(),x)
                     x += 1
-            self.sleep(0.01)
+            
+            self.sleep(0.1e-3)
+            
+    
+    def calc(self):
+        while True:
+            if self.plot_running:
+                self.msg_box.put(self.ai_task.getAIData_single()[0])
+            
+            self.sleep(0.1e-20)
+                
+                

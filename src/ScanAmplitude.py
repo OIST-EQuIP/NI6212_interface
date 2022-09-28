@@ -5,7 +5,11 @@ from NIDAQmxController import NIDAQ_ai_task
 from NIDAQmxController import NIDAQ_ao_task
 from NIDAQmxController import NIDAQ_do_task
 
-import time
+import concurrent.futures
+
+import queue
+
+import codecs
 
 class ScanAmplitude(TabCategory):
     """
@@ -121,6 +125,12 @@ class ScanAmplitude(TabCategory):
         self.ao_task = NIDAQ_ao_task('Dev1',self.AO_channel_combo.currentText())
         self.do_task = NIDAQ_do_task('Dev1',self.DO_port_combo.currentText(),self.DO_channel_combo.currentText())
         
+        self.msg_box = queue.Queue(maxsize=100)
+        
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        self.executor.submit(self.calc)
+        self.executor.submit(self.plotGenerator,self.data_connector)
+            
     
     def slotScanButtonToggled(self, checked: bool) -> None:
         """
@@ -170,6 +180,9 @@ class ScanAmplitude(TabCategory):
             self.ao_task.stop()
             self.do_task.stop()
             
+            while not self.msg_box.empty():
+                self.msg_box.get()
+            
             self.threshold.setEnabled(True)
             self.vamp.setEnabled(True)
             self.step.setEnabled(True)
@@ -216,57 +229,37 @@ class ScanAmplitude(TabCategory):
             data_connectors (tuple): Arguments for manipulating the plot area.
         """
         x = 0
+        while True:
+            if self.plot_running:
+                for data_connector in data_connectors:
+                    data_connector.cb_append_data_point(self.msg_box.get(),x)
+                    x += 1
+
+            self.sleep(0.1e-3)
+
+    
+    def calc(self):
+        slope = 1.0
         vo = 0
         while True:
             threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
             vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
             vmin = float(self.vmin.text()) if self.vmin.text() != '' and self.vmin.text() != '-' else 0.0
-            vamp = float(self.vamp.text()) if self.vamp.text() != '' and self.vamp.text() != '-' else 0.0
+            vamp = float(self.vamp.text()) if self.vamp.text() != '' and self.vamp.text() != '-' else vmax
             step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
             dt = float(self.dt.text()) if self.dt.text() != '' and self.dt.text() != '-' else 0.0
-            slope = 1.0
-            
             if self.plot_running:
-                vo += slope * step
+                vo = vo + slope * step
                 self.ao_task.setAOData(vo)
                 vi = self.ai_task.getAIData_single()[0]
-                if vi > threshold:
-                    time.sleep(dt/1000)
-                    self.do_task.setDODatad(True)
+                if threshold > 0 and vi > threshold or threshold < 0 and vi < threshold:
+                    self.sleep(dt/1000)
+                    self.do_task.setDOData(True)
                     slope = 0
-                    
-                if slope > 0 and vo > vmax:
+
+                if slope > 0 and vo > vamp:
                     slope = -1.0
-                elif slope < 0 and vo < vmin:
+                elif slope < 0 and vo < -vamp:
                     slope = 1.0
-                    
-                for data_connector in data_connectors:
-                    data_connector.cb_append_data_point(vi,x)
-                    x += 1
-            self.sleep(0.1e-10)
-                
-        
-    # def scan(self):
-    #     threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
-    #     vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
-    #     vmin = float(self.vmin.text()) if self.vmin.text() != '' and self.vmin.text() != '-' else 0.0
-    #     vamp = float(self.vamp.text()) if self.vamp.text() != '' and self.vamp.text() != '-' else 0.0
-    #     step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
-    #     dt = float(self.dt.text()) if self.dt.text() != '' and self.dt.text() != '-' else 0.0
-    #     slope = 1.0
-    #     ao = 0
-
-    #     vo += slope*step
-    #     self.ao_task.setAOData(vo)
-    #     vi = self.ai_task.getAIData_single()[0]
-    #     if vi > threshold:
-    #         time.sleep(dt/1000)
-    #         self.do_task.setDODatad(True)
-    #         slope = 0
-            
-    #     if slope > 0 and vo > vmax:
-    #         slope = -1.0
-    #     elif slope < 0 and vo < vmin:
-    #         slope = 1.0
-
-    #     return vi
+                self.msg_box.put(vi)
+            self.sleep(0.1e-322)

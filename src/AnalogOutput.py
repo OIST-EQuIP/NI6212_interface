@@ -3,6 +3,10 @@ from PyQt5.QtWidgets import QLabel
 from TabCategory import TabCategory
 from NIDAQmxController import NIDAQ_ao_task
 
+import concurrent.futures
+
+import queue
+
 class AnalogOutput(TabCategory):
     """
     Class that holds information on analog output tabs.
@@ -48,6 +52,12 @@ class AnalogOutput(TabCategory):
         
         self.ao_task = NIDAQ_ao_task('Dev1',self.channel_combo.currentText())
         
+        self.msg_box = queue.Queue(maxsize=100)
+        
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        executor.submit(self.calc)
+        executor.submit(self.plotGenerator,self.data_connector)
+        
         
     def slotButtonToggled(self, checked: bool) -> None:
         """
@@ -72,6 +82,8 @@ class AnalogOutput(TabCategory):
             self.plot_running = True
         else:
             self.ao_task.stop()
+            while not self.msg_box.empty():
+                self.msg_box.get()
             
             self.textbox.setEnabled(True)
             self.channel_combo.setEnabled(True)
@@ -91,9 +103,18 @@ class AnalogOutput(TabCategory):
         x = 0
         while True:
             if self.plot_running:
-                value = float(self.textbox.text()) if self.textbox.text()[-1] != '' and self.textbox.text()[-1] != '-' and self.textbox.text()[0] != '.' else 0.0
-                self.ao_task.setAOData(value)
                 for data_connector in data_connectors:
-                    data_connector.cb_append_data_point(value,x)
+                    data_connector.cb_append_data_point(self.msg_box.get(),x)
                     x += 1
-            self.sleep(0.01)
+            
+            self.sleep(0.1e-3)
+            
+        
+    def calc(self):
+        while True:
+            if self.plot_running:
+                vo = float(self.textbox.text()) if self.textbox.text()[-1] != '' and self.textbox.text()[-1] != '-' and self.textbox.text()[0] != '.' else 0.0
+                self.ao_task.setAOData(vo)
+                self.msg_box.put(vo)
+            
+            self.sleep(0.1e-20)
