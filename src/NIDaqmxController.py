@@ -2,14 +2,13 @@ import nidaqmx
 from nidaqmx.constants import LineGrouping
 
 class NIDAQ_task:
-    def __init__(self, dev_name : str):
+    def __init__(self):
         """
         Constructor.
         
         Create a task
         """
-        self.dev = self.getDeviceNames()[0]
-        # self.dev = dev_name
+        self.dev_name = self.getDeviceNames()[0]
         self.task = nidaqmx.Task()
     
     def start(self):
@@ -27,18 +26,14 @@ class NIDAQ_task:
 
 
 class NIDAQ_ai_task(NIDAQ_task):
-    def __init__(self, dev_name : str, port : str):
+    def __init__(self, port : str):
         """
         Constructor.
         
         Create an AI task
         """
-        super().__init__(dev_name)
-        # self.port = port
-        self.task.ai_channels.add_ai_voltage_chan(self.dev + "/" + port)
-    
-    # def addChan(self,port):
-    #     self.task.ai_channels.add_ai_voltage_chan(self.dev + "/" + port)
+        super().__init__()
+        self.task.ai_channels.add_ai_voltage_chan(self.dev_name + "/" + port)
     
     def getAIData_single(self) -> list:
         """
@@ -51,7 +46,6 @@ class NIDAQ_ai_task(NIDAQ_task):
             return self.task.read(number_of_samples_per_channel=1)
         except nidaqmx.errors.DaqReadError:
             print('error')
-        # return self.task.read(number_of_samples_per_channel=1)
         
     def getAIData_multi(self, num) -> list:
         """
@@ -67,19 +61,15 @@ class NIDAQ_ai_task(NIDAQ_task):
         
 
 class NIDAQ_ao_task(NIDAQ_task):
-    def __init__(self, dev_name : str, port : str):
+    def __init__(self, port : str):
         """
         Constructor.
         
         Create an AO task
         """
-        super().__init__(dev_name)
-        # self.port = port
-        self.task.ao_channels.add_ao_voltage_chan(self.dev + "/" + port)
-    
-    # def addChan(self):
-    #     self.task.ao_channels.add_ao_voltage_chan(self.dev + "/" + self.port)
-    
+        super().__init__()
+        self.task.ao_channels.add_ao_voltage_chan(self.dev_name + "/" + port)
+        
     def setAOData(self, data : float) -> None:
         """
         Set an analog output value.
@@ -90,20 +80,16 @@ class NIDAQ_ao_task(NIDAQ_task):
         except nidaqmx.errors.DaqWriteError:
             return False
 
+
 class NIDAQ_do_task(NIDAQ_task):
-    def __init__(self, dev_name : str, port : str, line : str):
+    def __init__(self, port : str, line : str):
         """
         Constructor.
         
         Create a DO task
         """
-        super().__init__(dev_name)
-        # self.port = port
-        # self.line = line
-        self.task.do_channels.add_do_chan(self.dev + "/" + port + "/" + line, line_grouping=LineGrouping.CHAN_PER_LINE)
-    
-    # def addChan(self):
-    #     self.task.do_channels.add_do_chan(self.dev + "/" + self.port + "/" + self.line, line_grouping=LineGrouping.CHAN_PER_LINE)
+        super().__init__()
+        self.task.do_channels.add_do_chan(self.dev_name + "/" + port + "/" + line, line_grouping=LineGrouping.CHAN_PER_LINE)
     
     def setDOData(self, data : bool) -> None:
         """

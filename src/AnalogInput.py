@@ -43,7 +43,7 @@ class AnalogInput(TabCategory):
         
         self.tab.addLayout(self.vbox_main)
         
-        self.ai_task = NIDAQ_ai_task('Dev1',self.channel_combo.currentText())
+        self.ai_task = NIDAQ_ai_task(self.channel_combo.currentText())
 
         self.msg_box = queue.Queue(maxsize=100)
         
@@ -64,7 +64,7 @@ class AnalogInput(TabCategory):
         if checked:
             if self.current_channel != self.channel_combo.currentIndex():
                 self.ai_task.close()
-                self.ai_task = NIDAQ_ai_task('Dev1',self.channel_combo.currentText())
+                self.ai_task = NIDAQ_ai_task(self.channel_combo.currentText())
                 self.current_channel = self.channel_combo.currentIndex()
             self.ai_task.start()
             

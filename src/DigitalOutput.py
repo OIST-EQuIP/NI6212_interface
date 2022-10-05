@@ -53,7 +53,7 @@ class DigitalOutput(TabCategory):
         
         self.tab.addLayout(self.vbox_main)
         
-        self.do_task = NIDAQ_do_task('Dev1',self.port_combo.currentText(),self.line_combo.currentText())
+        self.do_task = NIDAQ_do_task(self.port_combo.currentText(),self.line_combo.currentText())
         
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
         executor.submit(self.calc)
@@ -89,7 +89,7 @@ class DigitalOutput(TabCategory):
         if checked:
             if self.current_port != self.port_combo.currentIndex() or self.current_line != self.line_combo.currentIndex():
                 self.do_task.close()
-                self.do_task = NIDAQ_do_task('Dev1',self.port_combo.currentText(),self.line_combo.currentText())
+                self.do_task = NIDAQ_do_task(self.port_combo.currentText(),self.line_combo.currentText())
                 self.current_port = self.port_combo.currentIndex()
                 self.current_line = self.line_combo.currentIndex()
             self.do_task.start()

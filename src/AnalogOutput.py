@@ -50,7 +50,7 @@ class AnalogOutput(TabCategory):
         
         self.tab.addLayout(self.vbox_main)
         
-        self.ao_task = NIDAQ_ao_task('Dev1',self.channel_combo.currentText())
+        self.ao_task = NIDAQ_ao_task(self.channel_combo.currentText())
         
         self.msg_box = queue.Queue(maxsize=100)
         
@@ -71,7 +71,7 @@ class AnalogOutput(TabCategory):
         if checked:
             if self.current_channel != self.channel_combo.currentIndex():
                 self.ao_task.close()
-                self.ao_task = NIDAQ_ao_task('Dev1',self.channel_combo.currentText())
+                self.ao_task = NIDAQ_ao_task(self.channel_combo.currentText())
                 self.current_channel = self.channel_combo.currentIndex()
             self.ao_task.start()
             
