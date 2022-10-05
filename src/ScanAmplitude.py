@@ -9,8 +9,6 @@ import concurrent.futures
 
 import queue
 
-import codecs
-
 class ScanAmplitude(TabCategory):
     """
     Class that holds information on scan amplitude tabs.
@@ -121,9 +119,9 @@ class ScanAmplitude(TabCategory):
         
         self.tab.addLayout(self.hbox_main)
         
-        self.ai_task = NIDAQ_ai_task('Dev1',self.AI_channel_combo.currentText())
-        self.ao_task = NIDAQ_ao_task('Dev1',self.AO_channel_combo.currentText())
-        self.do_task = NIDAQ_do_task('Dev1',self.DO_port_combo.currentText(),self.DO_channel_combo.currentText())
+        self.ai_task = NIDAQ_ai_task(self.AI_channel_combo.currentText())
+        self.ao_task = NIDAQ_ao_task(self.AO_channel_combo.currentText())
+        self.do_task = NIDAQ_do_task(self.DO_port_combo.currentText(),self.DO_channel_combo.currentText())
         
         self.msg_box = queue.Queue(maxsize=100)
         
@@ -144,17 +142,17 @@ class ScanAmplitude(TabCategory):
         if checked:
             if self.ai_current_channel != self.AI_channel_combo.currentIndex():
                 self.ai_task.close()
-                self.ai_task = NIDAQ_ai_task('Dev1',self.AI_channel_combo.currentText())
+                self.ai_task = NIDAQ_ai_task(self.AI_channel_combo.currentText())
                 self.ai_current_channel = self.AI_channel_combo.currentIndex()
             
             if self.ao_current_channel != self.AO_channel_combo.currentIndex():
                 self.ao_task.close()
-                self.ao_task = NIDAQ_ao_task('Dev1',self.AO_channel_combo.currentText())
+                self.ao_task = NIDAQ_ao_task(self.AO_channel_combo.currentText())
                 self.ao_current_channel = self.AO_channel_combo.currentIndex()
                 
             if self.do_current_port != self.DO_port_combo.currentIndex() or self.do_current_channel != self.DO_channel_combo.currentIndex():
                 self.do_task.close()
-                self.do_task = NIDAQ_do_task('Dev1',self.DO_port_combo.currentText(),self.DO_channel_combo.currentText())
+                self.do_task = NIDAQ_do_task(self.DO_port_combo.currentText(),self.DO_channel_combo.currentText())
                 self.do_current_port = self.DO_port_combo.currentIndex()
                 self.do_current_channel = self.DO_channel_combo.currentIndex()
                 
@@ -209,14 +207,12 @@ class ScanAmplitude(TabCategory):
             checked (bool): Button press status.
         """
         if checked:
-            self.ai_task.stop()
-            self.ao_task.stop()
-            self.do_task.stop()
+            self.data_connector.pause()
+            self.plot_running = False
             self.lock_button.setText('UNLOCK')
         else:
-            self.ai_task.start()
-            self.ao_task.start()
-            self.do_task.start()
+            self.data_connector.resume()
+            self.plot_running = True
             self.lock_button.setText('LOCK')
             
     
@@ -239,8 +235,9 @@ class ScanAmplitude(TabCategory):
 
     
     def calc(self):
-        slope = 1.0
+        slope = 0
         vo = 0
+        old_state = False
         while True:
             threshold = float(self.threshold.text()) if self.threshold.text() != '' and self.threshold.text() != '-' else 0.0
             vmax = float(self.vmax.text()) if self.vmax.text() != '' and self.vmax.text() != '-' else 0.0
@@ -248,18 +245,27 @@ class ScanAmplitude(TabCategory):
             vamp = float(self.vamp.text()) if self.vamp.text() != '' and self.vamp.text() != '-' else vmax
             step = float(self.step.text()) if self.step.text() != '' and self.step.text() != '-' else 0.0
             dt = float(self.dt.text()) if self.dt.text() != '' and self.dt.text() != '-' else 0.0
+            
+            if old_state != self.plot_running:
+                slope = 1.0
+            
             if self.plot_running:
                 vo = vo + slope * step
                 self.ao_task.setAOData(vo)
                 vi = self.ai_task.getAIData_single()[0]
+                
                 if threshold > 0 and vi > threshold or threshold < 0 and vi < threshold:
                     self.sleep(dt/1000)
                     self.do_task.setDOData(True)
                     slope = 0
 
-                if slope > 0 and vo > vamp:
+                if slope > 0 and step > 0 and vo > vamp or step < 0 and vo < -vamp:
                     slope = -1.0
-                elif slope < 0 and vo < -vamp:
+                elif slope < 0 and step > 0 and vo < -vamp or step < 0 and vo > vamp:
                     slope = 1.0
+                    
                 self.msg_box.put(vi)
+                
+                old_state = self.plot_running
+                
             self.sleep(0.1e-322)
