@@ -15,7 +15,6 @@ class NIDAQ_task(object):
     
     def start(self) -> None:
         self._task.start()
-        print('start')
     
     def stop(self) -> None:
         self._task.stop()
