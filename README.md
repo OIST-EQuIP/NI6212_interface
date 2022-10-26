@@ -31,7 +31,7 @@ $ python App.py
 
 ## Description
 
-There are three tabs on the application: "Analog Input", "Analog Output", "Digital Output", and 'Scan Amplitude".
+There are three tabs on the application: "Analog Input", "Analog Output" and "Digital Output".
 
 ### Analog Input
 
@@ -51,28 +51,8 @@ Specifiable Output values are from -10 to 10.
 
 ![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/DO.PNG)
 
-In "Digital Output", voltage flows to the channel selected by the check box.
-Press the "START" button to start measurement, and press the "ON" button to output the signal. Pressing the "OFF" button stops signal output.
-
-### Scan Amplitude
-
-![image](https://github.com/OIST-EQuIP/NI6212_interface/blob/main/img/SA.PNG)
-
-"Scan Amplitude" sets the threshold value and performs the scanning operation.
-The analog output is gradually increased until the analog input reaches the threshold value.
-When the analog input reaches the threshold value, the analog output stops increasing or decreasing and a digital signal is output.
-
-Enter a threshold value in the "Threshold" field.
-"vmax" and "vmin" are set to the maximum and minimum values that the USB-6212 can detect on the analog input.
-"vamp" allows you to set the amplitude height.
-"step size" allows you to set the amplitude increase/decrease value.
-With "dt", you can set the output wait time for the digital signal to be output after the threshold value is detected.
-"AO Channel", "AI Channel", and "DI Port/Channel" allow you to select the port and channel to be used.
-
-The device name can be edited by pressing the "Edit" button.
-If the device name is different from the default value, please change it here.
-
-If the behavior is not correct, you can initialize it with the "Init" button. It is recommended to stop all operations before pressing the "Init" button.
+Under "Digital Output," voltage flows to the line of the port selected in the drop-down list.
+Press the "START" button to start measurement, and press the "Set True" button to output the signal. Pressing the "Set False" button stops signal output.
 
 ## Reference
 [PyQt5 document](https://pythonspot.com/pyqt5/)
